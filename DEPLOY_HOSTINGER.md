@@ -1,10 +1,13 @@
-# Deploying Healthy Logs on a Hostinger VPS
+# Deploying Healthy Logs on Hostinger
 
-This runs the **full** app (newsletter API, affiliate redirect, dynamic OG
-images, SSR) on a Hostinger VPS using Node + PM2 + nginx + free SSL.
+Two paths, depending on your plan:
 
-Assumes an **Ubuntu 22.04/24.04** VPS. Commands are copy-pasteable; replace
-`yourdomain.com` and paths as needed.
+- **Path A — Business/Cloud "Node.js Web Apps" (managed).** Hostinger builds and
+  runs the full app (SSR, API routes, dynamic OG) from your GitHub repo. No server
+  admin. **This is what your Business plan has — recommended.**
+- **Path B — VPS (self-managed).** Full control with Node + PM2 + nginx + SSL.
+
+Do the **blockers** first (both paths), then jump to your path.
 
 ---
 
@@ -17,9 +20,54 @@ Assumes an **Ubuntu 22.04/24.04** VPS. Commands are copy-pasteable; replace
 - [ ] Put your real Amazon Associates tag in `config/affiliates.ts`.
 - [ ] Have the legal pages reviewed; fill `jurisdiction` in `config/site.ts`.
 - [ ] (Recommended) add real images under `public/images/`.
-- [ ] Push the project to GitHub (you'll clone it on the VPS).
+- [ ] Push the project to GitHub (needed for both paths).
 
 ---
+
+## Path A — Business plan: Node.js Web Apps (recommended)
+
+Your Business plan includes **Node.js Web Apps**, which runs the full Next.js app
+(SSR, API routes, dynamic OG) and **builds it for you** from GitHub. No server admin.
+
+### A1. Push your code to GitHub
+The repo is already committed locally. Create an **empty** repo at
+[github.com/new](https://github.com/new) (no README/.gitignore), then:
+
+```bash
+cd C:\Users\csven\healthy-logs
+git remote add origin https://github.com/<you>/healthy-logs.git
+git branch -M main
+git push -u origin main
+```
+
+### A2. Create the app in hPanel
+1. **hPanel → Websites → Add website → Node.js** (or use the **Node.js** item in
+   the sidebar).
+2. **Import Git repository** → authorize GitHub → pick `healthy-logs`, branch `main`.
+3. If prompted, set: **Node 20**, install `npm install`, build `npm run build`
+   (Next.js is auto-detected — start command + output are handled for you).
+4. Add any **environment variables** (newsletter keys from `.env.example`) — optional.
+5. **Deploy.** The first build takes a few minutes.
+
+### A3. Domain
+It goes live on the temporary `*.hostingersite.com` URL first. To use your own
+domain, click **Connect domain** and follow the DNS steps, then set
+`config/site.ts` → `url` to the final `https://` domain and push a commit to redeploy.
+
+### A4. Verify
+Run the **post-deploy checks** in §7 below. Redeploys: push to `main` (enable
+auto-deploy in the app settings, or redeploy from hPanel).
+
+> If the dynamic OG images ever fail on the managed runtime, the fallback is to
+> remove `export const runtime = "edge"` from the three image files — the build
+> runs on Linux there, so the Node build of `@vercel/og` works fine.
+
+---
+
+## Path B — Hostinger VPS (self-managed)
+
+Assumes an **Ubuntu 22.04/24.04** VPS. Commands are copy-pasteable; replace
+`yourdomain.com` and paths as needed.
 
 ## 1. Create the VPS + point your domain
 
