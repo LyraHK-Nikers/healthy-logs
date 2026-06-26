@@ -14,8 +14,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // affiliate click-redirects — no SEO value, keep crawlers out
-      disallow: ["/go/", "/search"],
+      // affiliate redirects, search, and admin — no SEO value, keep crawlers out
+      disallow: ["/go/", "/search", "/admin", "/api/"],
     },
     sitemap: `${siteConfig.url}/sitemap.xml`,
     host: siteConfig.url,

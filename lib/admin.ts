@@ -1,0 +1,205 @@
+import "server-only";
+import { createHash, timingSafeEqual } from "node:crypto";
+import matter from "gray-matter";
+import GithubSlugger from "github-slugger";
+import mammoth from "mammoth";
+import TurndownService from "turndown";
+
+/**
+ * Server-only helpers for the /admin article uploader.
+ * Auth is a password gate (ADMIN_PASSWORD); publishing commits an .mdx file to
+ * GitHub (GITHUB_TOKEN/GITHUB_REPO), which triggers the host's auto-deploy.
+ */
+
+export const ADMIN_COOKIE = "hl_admin";
+
+function sha256(s: string): string {
+  return createHash("sha256").update(s).digest("hex");
+}
+
+/** The cookie value we set on a successful login (derived from the password). */
+export function adminToken(): string | null {
+  const pw = process.env.ADMIN_PASSWORD;
+  if (!pw) return null;
+  return sha256(`hl-admin::${pw}`);
+}
+
+export function isAdminConfigured(): boolean {
+  return Boolean(process.env.ADMIN_PASSWORD);
+}
+
+/** Constant-time password check. */
+export function passwordMatches(input: string): boolean {
+  const pw = process.env.ADMIN_PASSWORD;
+  if (!pw) return false;
+  const a = Buffer.from(sha256(input));
+  const b = Buffer.from(sha256(pw));
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** Verify a request cookie value against the expected admin token. */
+export function isAuthed(cookieValue: string | undefined): boolean {
+  const token = adminToken();
+  if (!token || !cookieValue) return false;
+  const a = Buffer.from(cookieValue);
+  const b = Buffer.from(token);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+export function slugify(text: string): string {
+  return new GithubSlugger().slug(text);
+}
+
+// ---------------------------------------------------------------------------
+// parsing
+// ---------------------------------------------------------------------------
+
+export type ParsedDoc = { title: string | null; body: string };
+
+/** Turn an uploaded .docx / .md / .txt buffer into a title + markdown body. */
+export async function parseUpload(
+  filename: string,
+  buffer: Buffer,
+): Promise<ParsedDoc> {
+  const lower = filename.toLowerCase();
+  let markdown: string;
+
+  if (lower.endsWith(".docx")) {
+    const { value: html } = await mammoth.convertToHtml({ buffer });
+    const td = new TurndownService({
+      headingStyle: "atx",
+      codeBlockStyle: "fenced",
+      bulletListMarker: "-",
+    });
+    markdown = td.turndown(html);
+  } else {
+    // .md / .markdown / .txt — already text
+    markdown = buffer.toString("utf8");
+  }
+
+  markdown = markdown.replace(/\r\n/g, "\n").trim();
+
+  // Pull the first H1 as the title and drop it from the body (the article
+  // template renders the title separately).
+  let title: string | null = null;
+  const h1 = markdown.match(/^#\s+(.+)$/m);
+  if (h1) {
+    title = h1[1].trim();
+    markdown = markdown.replace(/^#\s+.+$/m, "").trim();
+  }
+
+  return { title, body: markdown };
+}
+
+/** First readable sentence/paragraph, stripped of markdown, for the excerpt. */
+export function deriveExcerpt(body: string, max = 155): string {
+  const firstPara =
+    body
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .find((p) => p && !p.startsWith("#") && !p.startsWith("<")) ?? "";
+  const plain = firstPara
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_`>#]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.length > max ? `${plain.slice(0, max - 1).trim()}…` : plain;
+}
+
+// ---------------------------------------------------------------------------
+// build + commit
+// ---------------------------------------------------------------------------
+
+export type ArticleFields = {
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  type: "informational" | "commercial";
+  author: string;
+  reviewer?: string;
+  tags: string[];
+  featured: boolean;
+  body: string;
+};
+
+export function buildMdx(f: ArticleFields): string {
+  const today = new Date().toISOString().slice(0, 10);
+  const data: Record<string, unknown> = {
+    title: f.title,
+    slug: f.slug,
+    excerpt: f.excerpt,
+    category: f.category,
+    type: f.type,
+    author: f.author,
+    publishedAt: today,
+    updatedAt: today,
+    tags: f.tags,
+    medicallyReviewed: true,
+    featured: f.featured,
+  };
+  if (f.reviewer) data.reviewer = f.reviewer;
+  return matter.stringify(`\n${f.body}\n`, data);
+}
+
+export type CommitResult = {
+  committed: boolean;
+  path: string;
+  url?: string;
+  preview?: string;
+};
+
+/** Commit (create/update) the article file to GitHub via the contents API. */
+export async function commitArticle(
+  slug: string,
+  mdx: string,
+): Promise<CommitResult> {
+  const path = `content/articles/${slug}.mdx`;
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO; // "owner/name"
+  const branch = process.env.GITHUB_BRANCH || "main";
+
+  // No token configured → dry run: return the generated file for preview.
+  if (!token || !repo) {
+    return { committed: false, path, preview: mdx };
+  }
+
+  const [owner, name] = repo.split("/");
+  const apiBase = `https://api.github.com/repos/${owner}/${name}/contents/${path}`;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "healthy-logs-admin",
+  };
+
+  // Get existing sha (if updating).
+  let sha: string | undefined;
+  const getRes = await fetch(`${apiBase}?ref=${branch}`, { headers });
+  if (getRes.ok) {
+    sha = (await getRes.json()).sha;
+  }
+
+  const putRes = await fetch(apiBase, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({
+      message: `${sha ? "Update" : "Add"} article: ${slug}`,
+      content: Buffer.from(mdx, "utf8").toString("base64"),
+      branch,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+
+  if (!putRes.ok) {
+    const detail = await putRes.text();
+    throw new Error(`GitHub commit failed (${putRes.status}): ${detail.slice(0, 200)}`);
+  }
+
+  const json = await putRes.json();
+  return {
+    committed: true,
+    path,
+    url: json.content?.html_url ?? json.commit?.html_url,
+  };
+}
