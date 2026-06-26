@@ -1,0 +1,10 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Healthy Logs">
+  <rect width="40" height="40" rx="11" fill="#2F6B4F"/>
+  <g transform="rotate(-8 20 19)">
+    <path d="M20 7C26 11 26 20.5 20 27.5C14 20.5 14 11 20 7Z" fill="#FBFBF9"/>
+    <path d="M20 10.5V26" stroke="#2F6B4F" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M20 16.5L23.4 14" stroke="#2F6B4F" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M20 20.5L16.6 18" stroke="#2F6B4F" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+  <rect x="12.5" y="31" width="15" height="2.2" rx="1.1" fill="#C9A24B"/>
+</svg>
