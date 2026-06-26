@@ -7,7 +7,8 @@ import { ArticleCard } from "@/components/cards/ArticleCard";
 import { CategoryCard } from "@/components/cards/CategoryCard";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
-import { ArticleArt, CategoryIcon } from "@/components/ui/CategoryVisual";
+import { CategoryIcon } from "@/components/ui/CategoryVisual";
+import { ArticleHero } from "@/components/ui/ArticleHero";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import type { Article } from "@/lib/content";
 
@@ -189,8 +190,10 @@ function Spotlight({ article }: { article: Article }) {
       href={`/articles/${fm.slug}`}
       className="card card-hover group flex flex-col overflow-hidden"
     >
-      <ArticleArt
-        slug={fm.category}
+      <ArticleHero
+        src={fm.heroImage}
+        alt={fm.heroAlt}
+        category={fm.category}
         className="aspect-[16/10] w-full border-b border-line"
         iconClassName="h-16 w-16"
       />
@@ -222,8 +225,10 @@ function CompactRow({ article }: { article: Article }) {
       href={`/articles/${fm.slug}`}
       className="card card-hover group flex items-center gap-4 p-4"
     >
-      <ArticleArt
-        slug={fm.category}
+      <ArticleHero
+        src={fm.heroImage}
+        alt={fm.heroAlt}
+        category={fm.category}
         className="h-20 w-24 shrink-0 rounded-card"
         iconClassName="h-7 w-7"
       />

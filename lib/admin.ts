@@ -121,6 +121,9 @@ export type ArticleFields = {
   tags: string[];
   featured: boolean;
   body: string;
+  heroImage?: string;
+  heroAlt?: string;
+  publishedAt?: string; // preserved when editing; defaults to today
 };
 
 export function buildMdx(f: ArticleFields): string {
@@ -132,14 +135,81 @@ export function buildMdx(f: ArticleFields): string {
     category: f.category,
     type: f.type,
     author: f.author,
-    publishedAt: today,
+    publishedAt: f.publishedAt || today,
     updatedAt: today,
     tags: f.tags,
     medicallyReviewed: true,
     featured: f.featured,
   };
   if (f.reviewer) data.reviewer = f.reviewer;
+  if (f.heroImage) {
+    data.heroImage = f.heroImage;
+    data.heroAlt = f.heroAlt || f.title;
+  }
   return matter.stringify(`\n${f.body}\n`, data);
+}
+
+// --- GitHub commit helpers ---
+
+function gh() {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO; // "owner/name"
+  const branch = process.env.GITHUB_BRANCH || "main";
+  if (!token || !repo) return null;
+  const [owner, name] = repo.split("/");
+  return { token, owner, name, branch };
+}
+
+export function ghConfigured(): boolean {
+  return gh() !== null;
+}
+
+/** Create/update any file in the repo via the contents API; returns its URL. */
+async function commitFile(
+  path: string,
+  base64: string,
+  message: string,
+): Promise<string | undefined> {
+  const g = gh();
+  if (!g) throw new Error("GitHub not configured");
+  const apiBase = `https://api.github.com/repos/${g.owner}/${g.name}/contents/${path}`;
+  const headers = {
+    Authorization: `Bearer ${g.token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "healthy-logs-admin",
+  };
+  let sha: string | undefined;
+  const getRes = await fetch(`${apiBase}?ref=${g.branch}`, { headers });
+  if (getRes.ok) sha = (await getRes.json()).sha;
+
+  const putRes = await fetch(apiBase, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({
+      message,
+      content: base64,
+      branch: g.branch,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  if (!putRes.ok) {
+    const detail = await putRes.text();
+    throw new Error(`GitHub commit failed (${putRes.status}): ${detail.slice(0, 200)}`);
+  }
+  const json = await putRes.json();
+  return json.content?.html_url ?? json.commit?.html_url;
+}
+
+/** Commit a hero image to public/images/articles and return its public path. */
+export async function commitImage(
+  slug: string,
+  ext: string,
+  buffer: Buffer,
+): Promise<string> {
+  const path = `public/images/articles/${slug}.${ext}`;
+  await commitFile(path, buffer.toString("base64"), `Add hero image for ${slug}`);
+  return `/images/articles/${slug}.${ext}`;
 }
 
 export type CommitResult = {
@@ -149,57 +219,17 @@ export type CommitResult = {
   preview?: string;
 };
 
-/** Commit (create/update) the article file to GitHub via the contents API. */
+/** Commit (create/update) the article .mdx file. Dry-run if GitHub unset. */
 export async function commitArticle(
   slug: string,
   mdx: string,
 ): Promise<CommitResult> {
   const path = `content/articles/${slug}.mdx`;
-  const token = process.env.GITHUB_TOKEN;
-  const repo = process.env.GITHUB_REPO; // "owner/name"
-  const branch = process.env.GITHUB_BRANCH || "main";
-
-  // No token configured → dry run: return the generated file for preview.
-  if (!token || !repo) {
-    return { committed: false, path, preview: mdx };
-  }
-
-  const [owner, name] = repo.split("/");
-  const apiBase = `https://api.github.com/repos/${owner}/${name}/contents/${path}`;
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "healthy-logs-admin",
-  };
-
-  // Get existing sha (if updating).
-  let sha: string | undefined;
-  const getRes = await fetch(`${apiBase}?ref=${branch}`, { headers });
-  if (getRes.ok) {
-    sha = (await getRes.json()).sha;
-  }
-
-  const putRes = await fetch(apiBase, {
-    method: "PUT",
-    headers,
-    body: JSON.stringify({
-      message: `${sha ? "Update" : "Add"} article: ${slug}`,
-      content: Buffer.from(mdx, "utf8").toString("base64"),
-      branch,
-      ...(sha ? { sha } : {}),
-    }),
-  });
-
-  if (!putRes.ok) {
-    const detail = await putRes.text();
-    throw new Error(`GitHub commit failed (${putRes.status}): ${detail.slice(0, 200)}`);
-  }
-
-  const json = await putRes.json();
-  return {
-    committed: true,
+  if (!ghConfigured()) return { committed: false, path, preview: mdx };
+  const url = await commitFile(
     path,
-    url: json.content?.html_url ?? json.commit?.html_url,
-  };
+    Buffer.from(mdx, "utf8").toString("base64"),
+    `Publish article: ${slug}`,
+  );
+  return { committed: true, path, url };
 }

@@ -8,7 +8,10 @@ import {
   slugify,
   buildMdx,
   commitArticle,
+  commitImage,
+  ghConfigured,
 } from "@/lib/admin";
+import { getArticleBySlug } from "@/lib/content";
 
 export const runtime = "nodejs";
 
@@ -21,71 +24,107 @@ export async function POST(req: Request) {
   try {
     form = await req.formData();
   } catch {
-    return NextResponse.json({ error: "Expected a file upload." }, { status: 400 });
-  }
-
-  const file = form.get("file");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No file provided." }, { status: 400 });
-  }
-
-  const name = file.name || "article.md";
-  if (!/\.(docx|md|markdown|txt)$/i.test(name)) {
-    return NextResponse.json(
-      { error: "Unsupported file type. Use .docx, .md, or .txt." },
-      { status: 400 },
-    );
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  let parsed;
-  try {
-    parsed = await parseUpload(name, buffer);
-  } catch (err) {
-    console.error("[admin/import] parse error:", err);
-    return NextResponse.json(
-      { error: "Could not read that document." },
-      { status: 422 },
-    );
+    return NextResponse.json({ error: "Expected a form upload." }, { status: 400 });
   }
 
   const str = (k: string) => String(form.get(k) ?? "").trim();
+  const mode = str("mode") === "edit" ? "edit" : "create";
+  const explicitSlug = str("slug");
 
-  const title =
-    str("title") ||
-    parsed.title ||
-    name.replace(/\.(docx|md|markdown|txt)$/i, "").replace(/[-_]+/g, " ");
+  // --- resolve the body: uploaded file, else the pasted textarea ---
+  const file = form.get("file");
+  let parsedTitle: string | null = null;
+  let body = "";
 
-  if (!parsed.body) {
+  if (file instanceof File && file.size > 0) {
+    if (!/\.(docx|md|markdown|txt)$/i.test(file.name)) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Use .docx, .md, or .txt." },
+        { status: 400 },
+      );
+    }
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const parsed = await parseUpload(file.name, buffer);
+      parsedTitle = parsed.title;
+      body = parsed.body;
+    } catch (err) {
+      console.error("[admin/import] parse error:", err);
+      return NextResponse.json({ error: "Could not read that document." }, { status: 422 });
+    }
+  } else {
+    body = str("body");
+  }
+
+  // Normalize CRLF (multipart uses \r\n) so paragraph splitting + output are clean.
+  body = body.replace(/\r\n/g, "\n").trim();
+
+  if (!body) {
     return NextResponse.json(
-      { error: "The document appears to be empty." },
+      { error: "No content — upload a file or write the body." },
       { status: 422 },
     );
   }
 
-  const slug = slugify(title);
-  const typeRaw = str("type");
-  const type = typeRaw === "commercial" ? "commercial" : "informational";
+  // --- existing article (edit mode) to preserve publishedAt / hero image ---
+  const slugForLookup = explicitSlug || "";
+  const existing =
+    mode === "edit" && slugForLookup
+      ? getArticleBySlug(slugForLookup)?.frontmatter ?? null
+      : null;
+
+  const title =
+    str("title") ||
+    parsedTitle ||
+    existing?.title ||
+    (file instanceof File
+      ? file.name.replace(/\.(docx|md|markdown|txt)$/i, "").replace(/[-_]+/g, " ")
+      : "Untitled");
+
+  const slug = explicitSlug || slugify(title);
+
+  const type = str("type") === "commercial" ? "commercial" : "informational";
   const tags = str("tags")
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
 
-  const fields = {
+  // --- hero image: new upload (if GitHub configured) else keep existing ---
+  let heroImage = existing?.heroImage;
+  let heroAlt = str("heroAlt") || existing?.heroAlt;
+  const image = form.get("image");
+  if (image instanceof File && image.size > 0) {
+    const m = image.name.toLowerCase().match(/\.(png|jpe?g|webp)$/);
+    if (!m) {
+      return NextResponse.json(
+        { error: "Image must be png, jpg, or webp." },
+        { status: 400 },
+      );
+    }
+    if (ghConfigured()) {
+      const ext = m[1] === "jpeg" ? "jpg" : m[1];
+      const buffer = Buffer.from(await image.arrayBuffer());
+      heroImage = await commitImage(slug, ext, buffer);
+      if (!heroAlt) heroAlt = title;
+    }
+    // dry-run (no token): skip image commit; preview reflects no image.
+  }
+
+  const mdx = buildMdx({
     title,
     slug,
-    excerpt: str("excerpt") || deriveExcerpt(parsed.body),
-    category: str("category") || "general-nutrition",
+    excerpt: str("excerpt") || deriveExcerpt(body),
+    category: str("category") || existing?.category || "general-nutrition",
     type: type as "informational" | "commercial",
-    author: str("author") || "jane-doe",
-    reviewer: str("reviewer") || undefined,
-    tags,
+    author: str("author") || existing?.author || "jane-doe",
+    reviewer: str("reviewer") || existing?.reviewer || undefined,
+    tags: tags.length ? tags : existing?.tags ?? [],
     featured: str("featured") === "true",
-    body: parsed.body,
-  };
-
-  const mdx = buildMdx(fields);
+    body,
+    heroImage,
+    heroAlt,
+    publishedAt: existing?.publishedAt,
+  });
 
   try {
     const result = await commitArticle(slug, mdx);

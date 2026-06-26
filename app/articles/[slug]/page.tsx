@@ -21,7 +21,7 @@ import { AffiliateDisclosure } from "@/components/article/AffiliateDisclosure";
 import { ReadingProgress } from "@/components/article/ReadingProgress";
 import { AuthorCard } from "@/components/article/AuthorCard";
 import { ArticleCard } from "@/components/cards/ArticleCard";
-import { ArticleArt } from "@/components/ui/CategoryVisual";
+import { ArticleHero } from "@/components/ui/ArticleHero";
 import { Breadcrumbs, type Crumb } from "@/components/seo/Breadcrumbs";
 import { readingTime } from "@/lib/utils";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -125,9 +125,11 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             </div>
           </header>
 
-          {/* designed hero art (swap for a real photo later) */}
-          <ArticleArt
-            slug={fm.category}
+          {/* real hero image if uploaded, else designed placeholder */}
+          <ArticleHero
+            src={fm.heroImage}
+            alt={fm.heroAlt}
+            category={fm.category}
             className="mt-8 aspect-[2/1] w-full rounded-card border border-line"
             iconClassName="h-16 w-16"
           />

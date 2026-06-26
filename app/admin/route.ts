@@ -1,10 +1,16 @@
 import { cookies } from "next/headers";
-import { ADMIN_COOKIE, isAuthed, isAdminConfigured } from "@/lib/admin";
+import {
+  ADMIN_COOKIE,
+  isAuthed,
+  isAdminConfigured,
+  ghConfigured,
+} from "@/lib/admin";
+import { getAllArticles, getArticleBySlug } from "@/lib/content";
 
 /**
- * /admin — served as a route handler (not a page) so it bypasses the root
- * layout's "coming soon" gate and is reachable even while the site is hidden.
- * Self-contained HTML + inline JS; talks to /api/admin/login and /api/admin/import.
+ * /admin — route handler (not a page) so it bypasses the "coming soon" gate.
+ * Self-contained HTML + inline JS. Talks to /api/admin/login and /api/admin/import.
+ * Supports create (file upload or pasted markdown), hero image, and edit mode.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +25,13 @@ const CATEGORIES = [
   "general-nutrition",
 ];
 
-function html(body: string): Response {
+function esc(s: string): string {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );
+}
+
+function page(body: string): Response {
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,22 +41,26 @@ function html(body: string): Response {
 :root{--bg:#FBFBF9;--surface:#fff;--ink:#1C2520;--soft:#4A554E;--line:#E4E6E1;--accent:#2F6B4F}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:680px;margin:0 auto;padding:40px 20px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px}
-h1{font-size:22px;margin:0 0 4px}
+.wrap{max-width:720px;margin:0 auto;padding:36px 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;margin-bottom:18px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 10px}
 .muted{color:var(--soft);font-size:14px}
 label{display:block;font-size:13px;font-weight:600;margin:14px 0 4px}
 input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
-textarea{min-height:80px}
-.row{display:flex;gap:12px}.row>div{flex:1}
+textarea{min-height:90px}#body{min-height:200px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:180px}
 .check{display:flex;align-items:center;gap:8px;margin-top:14px}.check input{width:auto}
 button{margin-top:18px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer}
 button:disabled{opacity:.6;cursor:default}
 .out{margin-top:16px;padding:12px;border-radius:8px;font-size:14px;white-space:pre-wrap;word-break:break-word}
-.ok{background:#EAF2EC;color:#1C2520}.err{background:#fbeaea;color:#7a1f1f}
+.ok{background:#EAF2EC}.err{background:#fbeaea;color:#7a1f1f}
 a{color:var(--accent)}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.list li:last-child{border:0}
 pre{background:#f3f3f1;padding:12px;border-radius:8px;overflow:auto;font-size:12px}
+.pill{font-size:11px;color:var(--accent);background:#EAF2EC;border-radius:999px;padding:2px 8px}
 </style></head><body><div class="wrap">${body}</div></body></html>`,
     { headers: { "content-type": "text/html; charset=utf-8" } },
   );
@@ -57,7 +73,7 @@ function loginView(notConfigured: boolean): string {
   }
   return `<div class="card">
 <h1>Admin login</h1>
-<p class="muted">Enter the admin password to publish articles.</p>
+<p class="muted">Enter the admin password to manage articles.</p>
 <label for="pw">Password</label>
 <input id="pw" type="password" autofocus>
 <button id="go">Log in</button>
@@ -74,41 +90,91 @@ go.onclick=login;pw.addEventListener('keydown',function(e){if(e.key==='Enter')lo
 </script>`;
 }
 
-function uploadView(): string {
-  const cats = CATEGORIES.map((c) => `<option value="${c}">${c}</option>`).join("");
-  return `<div class="top"><h1>Publish an article</h1><a href="#" id="logout">Log out</a></div>
+type Editing = {
+  slug: string;
+  title: string;
+  category: string;
+  type: string;
+  author: string;
+  reviewer: string;
+  excerpt: string;
+  tags: string;
+  featured: boolean;
+  heroImage: string;
+  heroAlt: string;
+  body: string;
+};
+
+function listView(): string {
+  const items = getAllArticles()
+    .map((a) => {
+      const fm = a.frontmatter;
+      return `<li><span>${esc(fm.title)} <span class="pill">${esc(fm.category)}</span></span><a href="/admin?edit=${encodeURIComponent(fm.slug)}">Edit</a></li>`;
+    })
+    .join("");
+  return `<div class="card"><h2>Existing articles</h2><ul class="list">${items || '<li class="muted">None yet.</li>'}</ul></div>`;
+}
+
+function formView(editing: Editing | null): string {
+  const e = editing;
+  const sel = (v: string, cur: string) =>
+    v === cur ? " selected" : "";
+  const cats = CATEGORIES.map(
+    (c) => `<option value="${c}"${sel(c, e?.category ?? "")}>${c}</option>`,
+  ).join("");
+  const heading = e ? "Edit article" : "Publish a new article";
+  const dryNote = ghConfigured()
+    ? ""
+    : `<p class="muted">⚠️ No GitHub token set — submitting will show a preview only (nothing published). Set <code>GITHUB_TOKEN</code> to publish.</p>`;
+  const currentImg = e?.heroImage
+    ? `<p class="muted">Current image: <code>${esc(e.heroImage)}</code> (upload a new one to replace)</p>`
+    : "";
+
+  return `<div class="top"><h1>${heading}</h1><a href="#" id="logout">Log out</a></div>
 <div class="card">
-<p class="muted">Upload a Word (.docx) or Markdown/text (.md, .txt) file. The title comes from the file's first heading unless you set one below. Publishing commits the article to GitHub and the site redeploys automatically.</p>
-<label for="file">Article file (.docx, .md, .txt)</label>
-<input id="file" type="file" accept=".docx,.md,.markdown,.txt">
-<label for="title">Title (optional — overrides the file heading)</label>
-<input id="title" type="text" placeholder="e.g. Magnesium for Athletes">
+${dryNote}
+${e ? "" : `<label for="file">Upload a file (.docx, .md, .txt) — optional if you write the body below</label>
+<input id="file" type="file" accept=".docx,.md,.markdown,.txt">`}
+<label for="title">Title</label>
+<input id="title" type="text" value="${esc(e?.title ?? "")}" placeholder="e.g. Magnesium for Athletes">
 <div class="row">
 <div><label for="category">Category</label><select id="category">${cats}</select></div>
-<div><label for="type">Type</label><select id="type"><option value="informational">informational</option><option value="commercial">commercial</option></select></div>
+<div><label for="type">Type</label><select id="type"><option value="informational"${sel("informational", e?.type ?? "informational")}>informational</option><option value="commercial"${sel("commercial", e?.type ?? "")}>commercial</option></select></div>
 </div>
 <div class="row">
-<div><label for="author">Author slug</label><input id="author" type="text" value="jane-doe"></div>
-<div><label for="reviewer">Reviewer slug (optional)</label><input id="reviewer" type="text" placeholder="dr-smith-rd"></div>
+<div><label for="author">Author slug</label><input id="author" type="text" value="${esc(e?.author ?? "jane-doe")}"></div>
+<div><label for="reviewer">Reviewer slug (optional)</label><input id="reviewer" type="text" value="${esc(e?.reviewer ?? "")}" placeholder="dr-smith-rd"></div>
 </div>
 <label for="excerpt">Excerpt (optional — auto from first paragraph if blank)</label>
-<textarea id="excerpt" placeholder="One-sentence summary"></textarea>
+<textarea id="excerpt" placeholder="One-sentence summary">${esc(e?.excerpt ?? "")}</textarea>
 <label for="tags">Tags (comma separated)</label>
-<input id="tags" type="text" placeholder="magnesium, sleep">
-<div class="check"><input id="featured" type="checkbox" checked><label for="featured" style="margin:0">Feature on the homepage</label></div>
-<button id="pub">Publish article</button>
+<input id="tags" type="text" value="${esc(e?.tags ?? "")}" placeholder="magnesium, sleep">
+<label for="image">Hero image (optional — jpg, png, webp)</label>
+<input id="image" type="file" accept="image/png,image/jpeg,image/webp">
+${currentImg}
+<label for="heroAlt">Hero image alt text</label>
+<input id="heroAlt" type="text" value="${esc(e?.heroAlt ?? "")}" placeholder="Describe the image">
+<div class="check"><input id="featured" type="checkbox"${e ? (e.featured ? " checked" : "") : " checked"}><label for="featured" style="margin:0">Feature on the homepage</label></div>
+<label for="body">Body (Markdown)${e ? "" : " — used if no file is uploaded"}</label>
+<textarea id="body" placeholder="## Section heading&#10;&#10;Your content. Cite claims with footnotes [^1].">${esc(e?.body ?? "")}</textarea>
+<button id="pub">${e ? "Save changes" : "Publish article"}</button>
 <div id="out"></div>
 </div>
 <script>
 var pub=document.getElementById('pub'),out=document.getElementById('out');
-document.getElementById('logout').onclick=function(e){e.preventDefault();fetch('/api/admin/login',{method:'DELETE'}).then(function(){location.reload()})};
-function val(id){return document.getElementById(id).value.trim()}
+var MODE=${e ? "'edit'" : "'create'"};var SLUG=${e ? `'${esc(e.slug)}'` : "''"};
+document.getElementById('logout').onclick=function(ev){ev.preventDefault();fetch('/api/admin/login',{method:'DELETE'}).then(function(){location.href='/admin'})};
+function val(id){var el=document.getElementById(id);return el?el.value.trim():''}
 pub.onclick=function(){
- var f=document.getElementById('file').files[0];
- if(!f){out.className='out err';out.textContent='Please choose a file.';return}
- pub.disabled=true;out.className='out';out.textContent='Publishing…';
+ var fileEl=document.getElementById('file');
+ var f=fileEl&&fileEl.files[0];
+ var body=val('body');
+ if(MODE==='create'&&!f&&!body){out.className='out err';out.textContent='Upload a file or write the body.';return}
+ pub.disabled=true;out.className='out';out.textContent='Working…';
  var fd=new FormData();
- fd.append('file',f);
+ fd.append('mode',MODE);fd.append('slug',SLUG);
+ if(f)fd.append('file',f);
+ fd.append('body',body);
  fd.append('title',val('title'));
  fd.append('category',val('category'));
  fd.append('type',val('type'));
@@ -116,12 +182,14 @@ pub.onclick=function(){
  fd.append('reviewer',val('reviewer'));
  fd.append('excerpt',val('excerpt'));
  fd.append('tags',val('tags'));
+ fd.append('heroAlt',val('heroAlt'));
  fd.append('featured',document.getElementById('featured').checked?'true':'false');
+ var img=document.getElementById('image').files[0];if(img)fd.append('image',img);
  fetch('/api/admin/import',{method:'POST',body:fd})
  .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})})
  .then(function(x){pub.disabled=false;var d=x.d||{};
   if(!x.ok){out.className='out err';out.textContent=(d.error||'Failed');return}
-  if(d.committed){out.className='out ok';out.innerHTML='Published <b>'+d.slug+'</b>. The site will redeploy shortly.'+(d.url?' <a href="'+d.url+'" target="_blank" rel="noopener">View on GitHub</a>':'')}
+  if(d.committed){out.className='out ok';out.innerHTML='Saved <b>'+d.slug+'</b>. The site will redeploy shortly.'+(d.url?' <a href="'+d.url+'" target="_blank" rel="noopener">View on GitHub</a>':'')+' · <a href="/admin">Back</a>'}
   else{out.className='out ok';out.innerHTML='Preview (no GitHub token set, nothing published):<pre>'+(d.preview||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</pre>'}
  })
  .catch(function(){pub.disabled=false;out.className='out err';out.textContent='Network error'});
@@ -129,8 +197,32 @@ pub.onclick=function(){
 </script>`;
 }
 
-export async function GET() {
-  if (!isAdminConfigured()) return html(loginView(true));
-  const authed = isAuthed(cookies().get(ADMIN_COOKIE)?.value);
-  return html(authed ? uploadView() : loginView(false));
+export async function GET(req: Request) {
+  if (!isAdminConfigured()) return page(loginView(true));
+  if (!isAuthed(cookies().get(ADMIN_COOKIE)?.value)) return page(loginView(false));
+
+  const editSlug = new URL(req.url).searchParams.get("edit");
+  let editing: Editing | null = null;
+  if (editSlug) {
+    const art = getArticleBySlug(editSlug);
+    if (art) {
+      const fm = art.frontmatter;
+      editing = {
+        slug: fm.slug,
+        title: fm.title,
+        category: fm.category,
+        type: fm.type,
+        author: fm.author,
+        reviewer: fm.reviewer ?? "",
+        excerpt: fm.excerpt,
+        tags: (fm.tags ?? []).join(", "),
+        featured: Boolean(fm.featured),
+        heroImage: fm.heroImage ?? "",
+        heroAlt: fm.heroAlt ?? "",
+        body: art.content.trim(),
+      };
+    }
+  }
+
+  return page(formView(editing) + (editing ? "" : listView()));
 }

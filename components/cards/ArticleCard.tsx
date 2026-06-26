@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Article } from "@/lib/content";
 import { getCategoryName } from "@/config/categories";
 import { readingTime } from "@/lib/utils";
-import { ArticleArt, CategoryIcon } from "@/components/ui/CategoryVisual";
+import { CategoryIcon } from "@/components/ui/CategoryVisual";
+import { ArticleHero } from "@/components/ui/ArticleHero";
 
 /**
  * Article preview card. Designed art header (category-tinted + icon), a category
@@ -16,7 +17,12 @@ export function ArticleCard({ article }: { article: Article }) {
   return (
     <article className="card card-hover group flex h-full flex-col overflow-hidden">
       <Link href={`/articles/${fm.slug}`} className="flex h-full flex-col">
-        <ArticleArt slug={fm.category} className="aspect-[16/9] w-full border-b border-line" />
+        <ArticleHero
+          src={fm.heroImage}
+          alt={fm.heroAlt}
+          category={fm.category}
+          className="aspect-[16/9] w-full border-b border-line"
+        />
 
         <div className="flex flex-1 flex-col p-5">
           <div className="mb-2.5 flex items-center gap-2">
