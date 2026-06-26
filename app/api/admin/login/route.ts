@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import {
   ADMIN_COOKIE,
   adminToken,
-  passwordMatches,
+  credentialsMatch,
   isAdminConfigured,
 } from "@/lib/admin";
 
@@ -13,15 +13,21 @@ export async function POST(req: Request) {
   if (!isAdminConfigured()) {
     return NextResponse.json({ error: "Admin not configured." }, { status: 503 });
   }
+  let username = "";
   let password = "";
   try {
-    password = String((await req.json())?.password ?? "");
+    const body = await req.json();
+    username = String(body?.username ?? "");
+    password = String(body?.password ?? "");
   } catch {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 
-  if (!passwordMatches(password)) {
-    return NextResponse.json({ error: "Wrong password." }, { status: 401 });
+  if (!credentialsMatch(username, password)) {
+    return NextResponse.json(
+      { error: "Wrong username or password." },
+      { status: 401 },
+    );
   }
 
   const token = adminToken();

@@ -73,16 +73,18 @@ function loginView(notConfigured: boolean): string {
   }
   return `<div class="card">
 <h1>Admin login</h1>
-<p class="muted">Enter the admin password to manage articles.</p>
+<p class="muted">Enter your admin username and password to manage articles.</p>
+<label for="user">Username</label>
+<input id="user" type="text" autocomplete="username" autofocus>
 <label for="pw">Password</label>
-<input id="pw" type="password" autofocus>
+<input id="pw" type="password" autocomplete="current-password">
 <button id="go">Log in</button>
 <div id="out"></div>
 </div>
 <script>
-var go=document.getElementById('go'),pw=document.getElementById('pw'),out=document.getElementById('out');
+var go=document.getElementById('go'),user=document.getElementById('user'),pw=document.getElementById('pw'),out=document.getElementById('out');
 function login(){go.disabled=true;out.textContent='';
- fetch('/api/admin/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:pw.value})})
+ fetch('/api/admin/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:user.value,password:pw.value})})
  .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d}})})
  .then(function(x){if(x.ok){location.reload()}else{out.className='out err';out.textContent=(x.d&&x.d.error)||'Login failed';go.disabled=false}})
  .catch(function(){out.className='out err';out.textContent='Network error';go.disabled=false});}

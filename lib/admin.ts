@@ -17,24 +17,35 @@ function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }
 
-/** The cookie value we set on a successful login (derived from the password). */
+/** Cookie value set on a successful login (derived from the credentials). */
 export function adminToken(): string | null {
   const pw = process.env.ADMIN_PASSWORD;
   if (!pw) return null;
-  return sha256(`hl-admin::${pw}`);
+  const user = process.env.ADMIN_USERNAME || "";
+  return sha256(`hl-admin::${user}::${pw}`);
 }
 
 export function isAdminConfigured(): boolean {
   return Boolean(process.env.ADMIN_PASSWORD);
 }
 
-/** Constant-time password check. */
-export function passwordMatches(input: string): boolean {
+function constantEquals(a: string, b: string): boolean {
+  const ba = Buffer.from(sha256(a));
+  const bb = Buffer.from(sha256(b));
+  return ba.length === bb.length && timingSafeEqual(ba, bb);
+}
+
+/**
+ * Constant-time credentials check. Password is always required; the username is
+ * only enforced if ADMIN_USERNAME is set (so a password-only setup still works).
+ */
+export function credentialsMatch(username: string, password: string): boolean {
   const pw = process.env.ADMIN_PASSWORD;
   if (!pw) return false;
-  const a = Buffer.from(sha256(input));
-  const b = Buffer.from(sha256(pw));
-  return a.length === b.length && timingSafeEqual(a, b);
+  const pwOk = constantEquals(password, pw);
+  const expectedUser = process.env.ADMIN_USERNAME;
+  const userOk = expectedUser ? constantEquals(username, expectedUser) : true;
+  return pwOk && userOk;
 }
 
 /** Verify a request cookie value against the expected admin token. */
