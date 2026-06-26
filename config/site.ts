@@ -7,8 +7,9 @@ export const siteConfig = {
   tagline: "Evidence-based nutrition, logged and reviewed.",
   description:
     "Dietitian-reviewed nutrition guides and honest supplement comparisons. Every claim sourced, every author named.",
-  // Update this to your production domain before launch.
-  url: "https://www.healthylogs.com",
+  // Production domain (apex). If you serve on www instead, change to
+  // "https://www.healthylogs.com" and set up the redirect in Hostinger.
+  url: "https://healthylogs.com",
   ogImage: "/images/og-default.png",
   email: "hello@healthylogs.com",
   // Shown on legal pages; bump when you revise the policies.
