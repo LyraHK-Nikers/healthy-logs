@@ -6,6 +6,10 @@ import { siteConfig } from "@/config/site";
  * Nothing sensitive to disallow in v1.
  */
 export default function robots(): MetadataRoute.Robots {
+  // While the site is in "coming soon" mode, block all crawling.
+  if (process.env.SITE_LIVE !== "true") {
+    return { rules: { userAgent: "*", disallow: "/" } };
+  }
   return {
     rules: {
       userAgent: "*",
