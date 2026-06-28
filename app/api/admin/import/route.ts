@@ -12,6 +12,7 @@ import {
   ghConfigured,
 } from "@/lib/admin";
 import { getArticleBySlug } from "@/lib/content";
+import { marked } from "marked";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
   const str = (k: string) => String(form.get(k) ?? "").trim();
   const mode = str("mode") === "edit" ? "edit" : "create";
   const explicitSlug = str("slug");
+  const isPreview = str("preview") === "true";
 
   // --- resolve the body: uploaded file, else the pasted textarea ---
   const file = form.get("file");
@@ -101,20 +103,23 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-    if (ghConfigured()) {
+    // Commit the image only on a real publish (not preview / not dry-run).
+    if (!isPreview && ghConfigured()) {
       const ext = m[1] === "jpeg" ? "jpg" : m[1];
       const buffer = Buffer.from(await image.arrayBuffer());
       heroImage = await commitImage(slug, ext, buffer);
       if (!heroAlt) heroAlt = title;
     }
-    // dry-run (no token): skip image commit; preview reflects no image.
   }
+
+  const category = str("category") || existing?.category || "general-nutrition";
+  const excerpt = str("excerpt") || deriveExcerpt(body);
 
   const mdx = buildMdx({
     title,
     slug,
-    excerpt: str("excerpt") || deriveExcerpt(body),
-    category: str("category") || existing?.category || "general-nutrition",
+    excerpt,
+    category,
     type: type as "informational" | "commercial",
     author: str("author") || existing?.author || "jane-doe",
     reviewer: str("reviewer") || existing?.reviewer || undefined,
@@ -125,6 +130,21 @@ export async function POST(req: Request) {
     heroAlt,
     publishedAt: existing?.publishedAt,
   });
+
+  // --- Preview: render the body, return everything, commit nothing ---
+  if (isPreview) {
+    const bodyHtml = String(await marked.parse(body));
+    return NextResponse.json({
+      ok: true,
+      preview: true,
+      slug,
+      title,
+      category,
+      excerpt,
+      bodyHtml,
+      mdx,
+    });
+  }
 
   try {
     const result = await commitArticle(slug, mdx);

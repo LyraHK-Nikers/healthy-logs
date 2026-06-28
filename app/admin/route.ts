@@ -52,6 +52,15 @@ a{color:var(--accent)}
 .list li:last-child{border:0}
 pre{background:#f3f3f1;padding:12px;border-radius:8px;overflow:auto;font-size:12px}
 .pill{font-size:11px;color:var(--accent);background:#EAF2EC;border-radius:999px;padding:2px 8px}
+.btn2{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.pvcard{border:1px solid var(--line);border-radius:10px;padding:22px;margin-top:16px;background:#fff;max-width:680px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent)}
+.pvtitle{font-size:24px;margin:6px 0}
+.pvbody{color:var(--ink)}
+.pvbody h2{font-size:19px;margin:20px 0 6px}.pvbody h3{font-size:16px;margin:16px 0 4px}
+.pvbody p{margin:10px 0}.pvbody ul,.pvbody ol{padding-left:22px;margin:10px 0}
+.pvbody a{color:var(--accent)}.pvbody img{max-width:100%;border-radius:8px}
+.pvhero{width:100%;height:200px;object-fit:cover;border-radius:8px;margin-bottom:14px}
 </style></head><body><div class="wrap">${body}</div></body></html>`,
     { headers: { "content-type": "text/html; charset=utf-8" } },
   );
@@ -153,40 +162,58 @@ ${currentImg}
 <div class="check"><input id="featured" type="checkbox"${e ? (e.featured ? " checked" : "") : " checked"}><label for="featured" style="margin:0">Feature on the homepage</label></div>
 <label for="body">Body (Markdown)${e ? "" : " — used if no file is uploaded"}</label>
 <textarea id="body" placeholder="## Section heading&#10;&#10;Your content. Cite claims with footnotes [^1].">${esc(e?.body ?? "")}</textarea>
-<button id="pub">${e ? "Save changes" : "Publish article"}</button>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button id="prev" class="btn2" type="button">Preview</button>
+<button id="pub" type="button">${e ? "Save changes" : "Publish article"}</button>
+</div>
 <div id="out"></div>
 </div>
+<div id="preview"></div>
 <script>
-var pub=document.getElementById('pub'),out=document.getElementById('out');
+var pub=document.getElementById('pub'),prev=document.getElementById('prev'),out=document.getElementById('out'),preview=document.getElementById('preview');
 var MODE=${e ? "'edit'" : "'create'"};var SLUG=${e ? `'${esc(e.slug)}'` : "''"};
 document.getElementById('logout').onclick=function(ev){ev.preventDefault();fetch('/api/admin/login',{method:'DELETE'}).then(function(){location.href='/admin'})};
 function val(id){var el=document.getElementById(id);return el?el.value.trim():''}
-pub.onclick=function(){
- var fileEl=document.getElementById('file');
- var f=fileEl&&fileEl.files[0];
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function gather(){
+ var fileEl=document.getElementById('file');var f=fileEl?fileEl.files[0]:null;
  var body=val('body');
- if(MODE==='create'&&!f&&!body){out.className='out err';out.textContent='Upload a file or write the body.';return}
- pub.disabled=true;out.className='out';out.textContent='Working…';
  var fd=new FormData();
  fd.append('mode',MODE);fd.append('slug',SLUG);
  if(f)fd.append('file',f);
  fd.append('body',body);
- fd.append('title',val('title'));
- fd.append('category',val('category'));
- fd.append('type',val('type'));
- fd.append('author',val('author'));
- fd.append('reviewer',val('reviewer'));
- fd.append('excerpt',val('excerpt'));
- fd.append('tags',val('tags'));
- fd.append('heroAlt',val('heroAlt'));
+ fd.append('title',val('title'));fd.append('category',val('category'));fd.append('type',val('type'));
+ fd.append('author',val('author'));fd.append('reviewer',val('reviewer'));fd.append('excerpt',val('excerpt'));
+ fd.append('tags',val('tags'));fd.append('heroAlt',val('heroAlt'));
  fd.append('featured',document.getElementById('featured').checked?'true':'false');
  var img=document.getElementById('image').files[0];if(img)fd.append('image',img);
- fetch('/api/admin/import',{method:'POST',body:fd})
+ return {fd:fd,f:f,body:body,img:img};
+}
+prev.onclick=function(){
+ var b=gather();
+ if(MODE==='create'&&!b.f&&!b.body){out.className='out err';out.textContent='Upload a file or write the body.';return}
+ prev.disabled=true;out.className='out';out.textContent='Rendering preview…';preview.innerHTML='';
+ b.fd.append('preview','true');
+ fetch('/api/admin/import',{method:'POST',body:b.fd})
+ .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})})
+ .then(function(x){prev.disabled=false;var d=x.d||{};
+  if(!x.ok){out.className='out err';out.textContent=(d.error||'Preview failed');return}
+  out.className='out ok';out.textContent='Preview below — nothing published yet. Click Publish when it looks right.';
+  var hero=b.img?'<img class="pvhero" src="'+URL.createObjectURL(b.img)+'">':'';
+  preview.innerHTML='<div class="pvcard">'+hero+'<div class="eyebrow">'+esc(d.category)+'</div><div class="pvtitle" style="font-family:Georgia,serif">'+esc(d.title)+'</div><p style="color:var(--soft)">'+esc(d.excerpt)+'</p><hr><div class="pvbody">'+(d.bodyHtml||'')+'</div></div><details style="margin-top:12px"><summary class="muted">Raw .mdx that will be saved</summary><pre>'+esc(d.mdx)+'</pre></details>';
+ })
+ .catch(function(){prev.disabled=false;out.className='out err';out.textContent='Network error'});
+};
+pub.onclick=function(){
+ var b=gather();
+ if(MODE==='create'&&!b.f&&!b.body){out.className='out err';out.textContent='Upload a file or write the body.';return}
+ pub.disabled=true;out.className='out';out.textContent='Publishing…';
+ fetch('/api/admin/import',{method:'POST',body:b.fd})
  .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})})
  .then(function(x){pub.disabled=false;var d=x.d||{};
   if(!x.ok){out.className='out err';out.textContent=(d.error||'Failed');return}
-  if(d.committed){out.className='out ok';out.innerHTML='Saved <b>'+d.slug+'</b>. The site will redeploy shortly.'+(d.url?' <a href="'+d.url+'" target="_blank" rel="noopener">View on GitHub</a>':'')+' · <a href="/admin">Back</a>'}
-  else{out.className='out ok';out.innerHTML='Preview (no GitHub token set, nothing published):<pre>'+(d.preview||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</pre>'}
+  if(d.committed){out.className='out ok';out.innerHTML='Saved <b>'+esc(d.slug)+'</b>. The site will redeploy shortly.'+(d.url?' <a href="'+d.url+'" target="_blank" rel="noopener">View on GitHub</a>':'')+' · <a href="/admin">Back</a>';preview.innerHTML=''}
+  else{out.className='out ok';out.textContent='Not published — no GITHUB_TOKEN set. Set it to publish (use Preview to review in the meantime).'}
  })
  .catch(function(){pub.disabled=false;out.className='out err';out.textContent='Network error'});
 };
