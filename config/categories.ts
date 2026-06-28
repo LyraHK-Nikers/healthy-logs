@@ -1,23 +1,14 @@
 /**
- * Taxonomy — edit categories in ONE place (PROJECT_BRIEF.md §3).
- * `slug` is used in URLs and article frontmatter `category`.
+ * Taxonomy — the ONE place to manage categories.
+ *
+ * TO ADD A CATEGORY: copy one block below and edit slug / name / description.
+ *   - slug: lowercase, hyphenated (used in URLs + article frontmatter `category`)
+ *   - name: shown to readers
+ *   - description: shown on the category page + homepage tile
+ * Everything else (homepage grid, /category/[slug] page, filters, sitemap, the
+ * admin dropdown) updates automatically — no other file to touch.
  */
-export type CategorySlug =
-  | "vitamins"
-  | "minerals"
-  | "protein"
-  | "gut-health"
-  | "weight-management"
-  | "sports-nutrition"
-  | "general-nutrition";
-
-export type Category = {
-  slug: CategorySlug;
-  name: string;
-  description: string;
-};
-
-export const categories: Category[] = [
+export const categories = [
   {
     slug: "vitamins",
     name: "Vitamins",
@@ -60,9 +51,13 @@ export const categories: Category[] = [
     description:
       "Foundational nutrition science for everyday, healthy eating.",
   },
-];
+] as const;
 
-export const categorySlugs = categories.map((c) => c.slug);
+// Types derive from the array above — add a category and the type updates itself.
+export type CategorySlug = (typeof categories)[number]["slug"];
+export type Category = { slug: CategorySlug; name: string; description: string };
+
+export const categorySlugs: CategorySlug[] = categories.map((c) => c.slug);
 
 export function getCategory(slug: string): Category | undefined {
   return categories.find((c) => c.slug === slug);

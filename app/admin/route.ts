@@ -6,6 +6,7 @@ import {
   ghConfigured,
 } from "@/lib/admin";
 import { getAllArticles, getArticleBySlug } from "@/lib/content";
+import { categories } from "@/config/categories";
 
 /**
  * /admin — route handler (not a page) so it bypasses the "coming soon" gate.
@@ -14,16 +15,6 @@ import { getAllArticles, getArticleBySlug } from "@/lib/content";
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const CATEGORIES = [
-  "vitamins",
-  "minerals",
-  "protein",
-  "gut-health",
-  "weight-management",
-  "sports-nutrition",
-  "general-nutrition",
-];
 
 function esc(s: string): string {
   return String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -121,9 +112,12 @@ function formView(editing: Editing | null): string {
   const e = editing;
   const sel = (v: string, cur: string) =>
     v === cur ? " selected" : "";
-  const cats = CATEGORIES.map(
-    (c) => `<option value="${c}"${sel(c, e?.category ?? "")}>${c}</option>`,
-  ).join("");
+  const cats = categories
+    .map(
+      (c) =>
+        `<option value="${c.slug}"${sel(c.slug, e?.category ?? "")}>${esc(c.name)}</option>`,
+    )
+    .join("");
   const heading = e ? "Edit article" : "Publish a new article";
   const dryNote = ghConfigured()
     ? ""
