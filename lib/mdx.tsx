@@ -2,6 +2,58 @@ import type { MDXComponents } from "mdx/types";
 import { AffiliateLink } from "@/components/affiliate/AffiliateLink";
 import { ProductCard } from "@/components/affiliate/ProductCard";
 import { ProductComparison } from "@/components/affiliate/ProductComparison";
+import { siteConfig } from "@/config/site";
+import { AFFILIATE } from "@/config/affiliates";
+
+let SITE_HOST = "";
+try {
+  SITE_HOST = new URL(siteConfig.url).hostname.replace(/^www\./, "");
+} catch {
+  SITE_HOST = "";
+}
+
+/** Inline links pasted from Word/Markdown: make external ones compliant. */
+function SmartLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
+  const href = props.href || "";
+  const isExternal = /^https?:\/\//i.test(href);
+
+  if (!isExternal) {
+    // internal / anchor / mailto — leave as-is
+    return <a className="text-accent link-underline" {...props} />;
+  }
+
+  let finalHref = href;
+  let internalDomain = false;
+  try {
+    const u = new URL(href);
+    internalDomain = Boolean(
+      SITE_HOST && u.hostname.replace(/^www\./, "") === SITE_HOST,
+    );
+    // Normalize Amazon links to the tracking tag from config (one source).
+    if (/(^|\.)amazon\./i.test(u.hostname)) {
+      u.searchParams.set("tag", AFFILIATE.amazon.trackingTag);
+      finalHref = u.toString();
+    }
+  } catch {
+    /* keep original href */
+  }
+
+  if (internalDomain) {
+    return <a className="text-accent link-underline" {...props} />;
+  }
+
+  // External link → compliant by default (Google rel + security + new tab).
+  return (
+    <a
+      {...props}
+      href={finalHref}
+      target="_blank"
+      rel="sponsored nofollow noopener"
+      data-affiliate="true"
+      className="text-accent link-underline"
+    />
+  );
+}
 
 /**
  * MDX component mapping (ARCHITECTURE.md). Applies the design system to
@@ -28,7 +80,7 @@ export const mdxComponents: MDXComponents = {
   ol: (props) => (
     <ol className="my-4 list-decimal space-y-1 pl-6 text-ink-soft" {...props} />
   ),
-  a: (props) => <a className="text-accent link-underline" {...props} />,
+  a: (props) => <SmartLink {...props} />,
   hr: () => <hr className="my-10 rule" />,
   blockquote: (props) => (
     <blockquote
