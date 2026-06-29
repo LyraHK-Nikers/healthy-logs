@@ -117,6 +117,34 @@ function listView(): string {
   return `<div class="card"><h2>Existing articles</h2><ul class="list">${items || '<li class="muted">None yet.</li>'}</ul></div>`;
 }
 
+function connectionView(): string {
+  return `<div class="card">
+<h2>GitHub connection</h2>
+<p class="muted">Publishing saves your article to GitHub. Test it before you rely on it.</p>
+<button id="ghtest" class="btn2" type="button">Test connection</button>
+<div id="ghout"></div>
+</div>
+<script>
+(function(){
+ var b=document.getElementById('ghtest'),o=document.getElementById('ghout');
+ function ic(s){return s==='ok'?'✅':(s==='unknown'?'⚠️':'❌');}
+ function escx(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]});}
+ b.onclick=function(){
+  b.disabled=true;o.className='out';o.textContent='Checking…';
+  fetch('/api/admin/check').then(function(r){return r.json()}).then(function(d){
+   b.disabled=false;
+   if(d.error){o.className='out err';o.textContent=d.error;return}
+   var rows='<div>'+ic(d.token)+' Token</div>'
+     +'<div>'+ic(d.repo)+' Repository ('+escx(d.repo_name)+')</div>'
+     +'<div>'+ic(d.write)+' Write access</div>';
+   o.className='out '+(d.ok?'ok':'err');
+   o.innerHTML=rows+(d.message?'<div style="margin-top:8px">'+escx(d.message)+'</div>':'');
+  }).catch(function(){b.disabled=false;o.className='out err';o.textContent='Network error'});
+ };
+})();
+</script>`;
+}
+
 function formView(editing: Editing | null): string {
   const e = editing;
   const sel = (v: string, cur: string) =>
@@ -247,5 +275,7 @@ export async function GET(req: Request) {
     }
   }
 
-  return page(formView(editing) + (editing ? "" : listView()));
+  return page(
+    connectionView() + formView(editing) + (editing ? "" : listView()),
+  );
 }
