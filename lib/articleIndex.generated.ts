@@ -15,5 +15,10 @@ export const articleIndex: ArticleIndexEntry[] = [
     "slug": "magnesium-glycinate-vs-citrate",
     "title": "Magnesium Glycinate vs Citrate: Which Is Better for Sleep?",
     "category": "minerals"
+  },
+  {
+    "slug": "the-two-families-of-vitamins",
+    "title": "The two families of vitamins",
+    "category": "vitamins"
   }
 ];
