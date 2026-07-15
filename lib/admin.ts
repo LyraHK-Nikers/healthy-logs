@@ -17,16 +17,20 @@ function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }
 
+// Trim env values — pasting into a host's env-var box often adds a trailing
+// space or newline, which would otherwise make every login fail.
+const envUser = () => (process.env.ADMIN_USERNAME || "").trim();
+const envPass = () => (process.env.ADMIN_PASSWORD || "").trim();
+
 /** Cookie value set on a successful login (derived from the credentials). */
 export function adminToken(): string | null {
-  const pw = process.env.ADMIN_PASSWORD;
+  const pw = envPass();
   if (!pw) return null;
-  const user = process.env.ADMIN_USERNAME || "";
-  return sha256(`hl-admin::${user}::${pw}`);
+  return sha256(`hl-admin::${envUser()}::${pw}`);
 }
 
 export function isAdminConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD);
+  return Boolean(envPass());
 }
 
 function constantEquals(a: string, b: string): boolean {
@@ -38,13 +42,17 @@ function constantEquals(a: string, b: string): boolean {
 /**
  * Constant-time credentials check. Password is always required; the username is
  * only enforced if ADMIN_USERNAME is set (so a password-only setup still works).
+ * Both stored values and submitted values are trimmed to tolerate paste/typo
+ * whitespace.
  */
 export function credentialsMatch(username: string, password: string): boolean {
-  const pw = process.env.ADMIN_PASSWORD;
+  const pw = envPass();
   if (!pw) return false;
-  const pwOk = constantEquals(password, pw);
-  const expectedUser = process.env.ADMIN_USERNAME;
-  const userOk = expectedUser ? constantEquals(username, expectedUser) : true;
+  const pwOk = constantEquals(password.trim(), pw);
+  const expectedUser = envUser();
+  const userOk = expectedUser
+    ? constantEquals(username.trim(), expectedUser)
+    : true;
   return pwOk && userOk;
 }
 
