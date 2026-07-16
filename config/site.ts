@@ -26,6 +26,7 @@ export const siteConfig = {
   // Primary nav (header)
   nav: [
     { label: "Articles", href: "/articles" },
+    { label: "Quiz", href: "/quiz" },
     { label: "About", href: "/about" },
     { label: "Editorial policy", href: "/editorial-policy" },
     { label: "Contact", href: "/contact" },

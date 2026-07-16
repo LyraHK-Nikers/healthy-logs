@@ -106,6 +106,27 @@ export default function HomePage() {
           </section>
         )}
 
+        {/* ==================================================== Quiz CTA */}
+        <section className="py-6">
+          <Link
+            href="/quiz"
+            className="card card-hover group flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+            style={{ backgroundColor: "var(--accent-soft)" }}
+          >
+            <div>
+              <p className="eyebrow">60-second quiz</p>
+              <h2 className="mt-1 font-display text-xl text-ink sm:text-2xl">
+                Not sure which supplement is right for you?
+              </h2>
+              <p className="mt-1 text-sm text-ink-soft">
+                Answer three quick questions and get a research-backed place to
+                start.
+              </p>
+            </div>
+            <span className="btn-primary shrink-0">Take the quiz →</span>
+          </Link>
+        </section>
+
         {/* ===================================================== Categories */}
         <section className="py-12">
           <SectionHeading title="Browse by topic" />
