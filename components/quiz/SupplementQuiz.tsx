@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 /**
@@ -131,17 +131,37 @@ export function SupplementQuiz() {
     "idle",
   );
   const [emailMsg, setEmailMsg] = useState("No spam. Unsubscribe anytime.");
+  const [live, setLive] = useState("");
+
+  const questionRef = useRef<HTMLHeadingElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const interacted = useRef(false);
 
   const total = QUESTIONS.length;
   const done = step >= total;
   const progress = Math.round((Math.min(step, total) / total) * 100);
 
+  // Move focus + announce on each transition, but never on first mount.
+  useEffect(() => {
+    if (!interacted.current) return;
+    if (done) {
+      setLive(
+        `Your result: ${REC[answers.goal as Goal]?.name ?? "your recommendation"}.`,
+      );
+      resultRef.current?.focus();
+    } else {
+      questionRef.current?.focus();
+    }
+  }, [step, done, answers]);
+
   function choose(key: string, value: string) {
+    interacted.current = true;
     setAnswers((a) => ({ ...a, [key]: value }));
     setStep((s) => s + 1);
   }
 
   function restart() {
+    interacted.current = true;
     setAnswers({});
     setStep(0);
     setEmail("");
@@ -173,6 +193,9 @@ export function SupplementQuiz() {
 
   return (
     <div className="card mx-auto max-w-xl p-6 sm:p-8">
+      <div aria-live="polite" className="sr-only">
+        {live}
+      </div>
       <div className="flex items-center justify-between">
         <span className="eyebrow">Find your supplement</span>
         <span className="log-stamp">
@@ -188,7 +211,13 @@ export function SupplementQuiz() {
 
       {!done ? (
         <div className="mt-6">
-          <h2 className="font-display text-xl text-ink">{QUESTIONS[step].q}</h2>
+          <h2
+            ref={questionRef}
+            tabIndex={-1}
+            className="font-display text-xl text-ink outline-none"
+          >
+            {QUESTIONS[step].q}
+          </h2>
           <div className="mt-4 space-y-2.5">
             {QUESTIONS[step].opts.map((o) => (
               <button
@@ -204,16 +233,18 @@ export function SupplementQuiz() {
           </div>
         </div>
       ) : (
-        <ResultView
-          goal={answers.goal as Goal}
-          dietTip={DIET_TIP[answers.diet]}
-          email={email}
-          setEmail={setEmail}
-          emailStatus={emailStatus}
-          emailMsg={emailMsg}
-          subscribe={subscribe}
-          restart={restart}
-        />
+        <div ref={resultRef} tabIndex={-1} className="outline-none">
+          <ResultView
+            goal={answers.goal as Goal}
+            dietTip={DIET_TIP[answers.diet]}
+            email={email}
+            setEmail={setEmail}
+            emailStatus={emailStatus}
+            emailMsg={emailMsg}
+            subscribe={subscribe}
+            restart={restart}
+          />
+        </div>
       )}
     </div>
   );
@@ -242,7 +273,7 @@ function ResultView({
   const category = CATEGORY_FOR[goal] ?? "general-nutrition";
 
   return (
-    <div className="mt-6" aria-live="polite">
+    <div className="mt-6">
       <p className="text-sm text-ink-soft">Based on your answers, start with</p>
       <p className="mt-1 font-display text-2xl text-ink">{rec.name}</p>
       <p className="mt-3 text-md text-ink-soft">{rec.why}</p>
