@@ -18,6 +18,14 @@ export default function HomePage() {
   const spotlight = featured[0];
   const rest = featured.slice(1, 4);
 
+  // Articles already shown in the spotlight block, so the grid below never repeats them.
+  const shownSlugs = new Set(
+    [spotlight, ...rest.slice(0, 2)].filter(Boolean).map((a) => a.frontmatter.slug),
+  );
+  const moreRecent = allArticles.filter(
+    (a) => !shownSlugs.has(a.frontmatter.slug),
+  );
+
   const countByCategory = allArticles.reduce<Record<string, number>>(
     (acc, a) => {
       acc[a.frontmatter.category] = (acc[a.frontmatter.category] ?? 0) + 1;
@@ -25,6 +33,13 @@ export default function HomePage() {
     },
     {},
   );
+  // Only surface categories that actually have articles (fall back to all if none yet).
+  const populatedCategories = categories.filter(
+    (c) => (countByCategory[c.slug] ?? 0) > 0,
+  );
+  const shownCategories = populatedCategories.length
+    ? populatedCategories
+    : categories;
 
   return (
     <div>
@@ -89,11 +104,12 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* full grid of recent (if there are more) */}
-        {allArticles.length > 0 && (
+        {/* More recent — only when there are genuinely different articles to show,
+            so the homepage never repeats the spotlight above. */}
+        {moreRecent.length >= 3 && (
           <section className="pb-4">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {allArticles.slice(0, 3).map((a, i) => (
+              {moreRecent.slice(0, 6).map((a, i) => (
                 <div
                   key={a.frontmatter.slug}
                   className="reveal"
@@ -131,7 +147,7 @@ export default function HomePage() {
         <section className="py-12">
           <SectionHeading title="Browse by topic" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category, i) => (
+            {shownCategories.map((category, i) => (
               <div
                 key={category.slug}
                 className="reveal"

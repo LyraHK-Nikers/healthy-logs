@@ -21,6 +21,7 @@ const config: Config = {
         accent: "var(--accent)",
         "accent-soft": "var(--accent-soft)",
         highlight: "var(--highlight)",
+        highlightText: "var(--highlight-text)",
       },
       fontFamily: {
         // wired to next/font CSS variables in app/layout.tsx

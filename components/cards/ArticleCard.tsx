@@ -31,7 +31,7 @@ export function ArticleCard({ article }: { article: Article }) {
               {getCategoryName(fm.category)}
             </span>
             {fm.type === "commercial" && (
-              <span className="chip bg-highlight/10 text-highlight">Reviews</span>
+              <span className="chip bg-highlight/15 text-highlightText">Reviews</span>
             )}
           </div>
 

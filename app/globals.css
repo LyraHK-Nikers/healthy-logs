@@ -14,7 +14,8 @@
   --line: #e4e6e1; /* hairline borders / rules */
   --accent: #2f6b4f; /* deep, calm green */
   --accent-soft: #eaf2ec; /* accent wash for tags/badges */
-  --highlight: #c9a24b; /* muted brass — log-date stamp + ratings ONLY */
+  --highlight: #c9a24b; /* bright brass — star-rating fills + decorative accents */
+  --highlight-text: #8a6a1e; /* darker brass for TEXT (log stamps/captions) — passes WCAG AA on --bg */
 }
 
 @layer base {
@@ -60,7 +61,7 @@
     font-family: var(--font-plex-mono), ui-monospace, monospace;
     font-size: 0.8rem;
     letter-spacing: 0.04em;
-    color: var(--highlight);
+    color: var(--highlight-text);
   }
 
   /* Category eyebrow / tag */
