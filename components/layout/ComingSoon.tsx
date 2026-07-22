@@ -17,7 +17,7 @@ export function ComingSoon() {
 
         <p className="eyebrow mt-8">Launching soon</p>
         <h1 className="mt-3 max-w-2xl font-display text-2xl leading-tight text-ink sm:text-3xl">
-          Nutrition you can actually trust — almost ready.
+          Wellness you can actually trust — almost ready.
         </h1>
         <p className="mx-auto mt-4 max-w-md text-md text-ink-soft">
           We&rsquo;re putting the finishing touches on Healthy Logs. Leave your
@@ -28,7 +28,7 @@ export function ComingSoon() {
           <NewsletterForm />
         </div>
 
-        <p className="log-stamp mt-10">LOG 2026 · dietitian-reviewed nutrition</p>
+        <p className="log-stamp mt-10">LOG 2026 · dietitian-reviewed wellness</p>
       </div>
     </div>
   );

@@ -51,10 +51,10 @@ export default function HomePage() {
           <div className="reveal">
             <span className="chip">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Evidence-based nutrition
+              Evidence-based wellness
             </span>
             <h1 className="mt-4 font-display text-3xl leading-[1.05] text-ink sm:text-[3.25rem]">
-              Nutrition you can
+              Wellness you can
               <br />
               actually trust.
             </h1>
@@ -171,7 +171,7 @@ export default function HomePage() {
                 Get new logs in your inbox
               </h2>
               <p className="mt-2 mb-5 text-sm text-ink-soft">
-                Occasional, dietitian-reviewed nutrition notes.
+                Occasional, dietitian-reviewed wellness &amp; supplement notes.
               </p>
               <NewsletterForm />
             </div>

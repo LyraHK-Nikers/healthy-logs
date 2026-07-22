@@ -6,9 +6,9 @@ import { HydrationCalculator } from "@/components/tools/HydrationCalculator";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Free nutrition tools",
+  title: "Free wellness tools",
   description:
-    "Free, no-signup nutrition tools: a protein calculator, a hydration calculator, a supplement finder quiz, and a myth-or-fact game.",
+    "Free, no-signup wellness tools: a protein calculator, a hydration calculator, a supplement finder quiz, and a myth-or-fact game.",
   path: "/tools",
 });
 
@@ -20,7 +20,7 @@ export default function ToolsPage() {
       <header className="mt-6">
         <p className="eyebrow">Interactive</p>
         <h1 className="mt-2 font-display text-2xl text-ink sm:text-3xl">
-          Free nutrition tools
+          Free wellness tools
         </h1>
         <p className="mt-3 max-w-xl text-md text-ink-soft">
           Quick, no-signup tools to help you make sense of the basics. All are a
@@ -57,7 +57,7 @@ export default function ToolsPage() {
             Myth or fact?
           </h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Ten common nutrition claims. How many can you spot?
+            Ten common wellness claims. How many can you spot?
           </p>
           <span className="mt-3 text-sm text-accent">Play now →</span>
         </Link>

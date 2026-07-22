@@ -2,7 +2,7 @@
   "name": "healthy-logs",
   "version": "0.1.0",
   "private": true,
-  "description": "A nutrition content website monetized through affiliate marketing — fast, credible, compliant by default.",
+  "description": "A wellness & supplements content website monetized through affiliate marketing — fast, credible, compliant by default.",
   "scripts": {
     "gen:index": "node scripts/gen-content-index.mjs",
     "predev": "node scripts/gen-content-index.mjs",

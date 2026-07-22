@@ -49,7 +49,7 @@ export default function OpengraphImage() {
               maxWidth: 940,
             }}
           >
-            Nutrition you can actually trust.
+            Wellness you can actually trust.
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 34 }}>
             <div style={{ width: 64, height: 6, background: "#C9A24B", borderRadius: 3 }} />

@@ -12,7 +12,7 @@ const PAGE_SIZE = 9;
 export const metadata: Metadata = pageMetadata({
   title: "All articles",
   description:
-    "Browse every Healthy Logs guide — evidence-based nutrition articles and honest supplement comparisons.",
+    "Browse every Healthy Logs guide — evidence-based wellness articles and honest supplement comparisons.",
   path: "/articles",
 });
 
@@ -53,7 +53,7 @@ export default function ArticlesIndexPage({
         <p className="mt-2 max-w-xl text-ink-soft">
           {validCategory
             ? validCategory.description
-            : "Evidence-based nutrition guides and honest supplement comparisons."}
+            : "Evidence-based wellness guides and honest supplement comparisons."}
         </p>
       </header>
 

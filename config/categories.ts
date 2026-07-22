@@ -47,9 +47,9 @@ export const categories = [
   },
   {
     slug: "general-nutrition",
-    name: "General nutrition",
+    name: "Everyday wellness",
     description:
-      "Foundational nutrition science for everyday, healthy eating.",
+      "Foundational wellness and nutrition science for everyday, healthy living.",
   },
 ] as const;
 

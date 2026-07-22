@@ -7,7 +7,7 @@ import { getAllAuthors } from "@/lib/content";
 export const metadata: Metadata = pageMetadata({
   title: "About",
   description:
-    "Who is behind Healthy Logs — our mission to publish calm, credible, evidence-based nutrition content.",
+    "Who is behind Healthy Logs — our mission to publish calm, credible, evidence-based wellness and supplement content.",
   path: "/about",
 });
 
@@ -17,11 +17,12 @@ export default function AboutPage() {
   return (
     <LegalPage
       title="About Healthy Logs"
-      intro="Calm, credible, evidence-based nutrition — logged and reviewed."
+      intro="Calm, credible, evidence-based wellness & supplements — logged and reviewed."
       lastUpdated={false}
     >
       <p>
-        Healthy Logs exists to make nutrition information trustworthy again. The
+        Healthy Logs exists to make wellness and supplement information
+        trustworthy again. The
         web is full of supplement hype and thin affiliate pages; we do the
         opposite. Every article is framed as a research log — a dated, revisited
         entry — written by named authors, reviewed for accuracy, and grounded in

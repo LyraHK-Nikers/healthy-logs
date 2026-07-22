@@ -4,9 +4,9 @@
  */
 export const siteConfig = {
   name: "Healthy Logs",
-  tagline: "Evidence-based nutrition, logged and reviewed.",
+  tagline: "Evidence-based wellness & supplements, logged and reviewed.",
   description:
-    "Dietitian-reviewed nutrition guides and honest supplement comparisons. Every claim sourced, every author named.",
+    "Dietitian-reviewed wellness guides and honest supplement comparisons. Every claim sourced, every author named.",
   // Production domain (apex). If you serve on www instead, change to
   // "https://www.healthylogs.com" and set up the redirect in Hostinger.
   url: "https://healthylogs.com",

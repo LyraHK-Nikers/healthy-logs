@@ -1,7 +1,7 @@
 /**
  * Healthy Logs brand logo.
  *
- * Concept (ties to the design system): a leaf (nutrition) inside a rounded
+ * Concept (ties to the design system): a leaf (wellness) inside a rounded
  * "log" badge, underlined by a brass rule — the same brass "LOG / UPD" stamp
  * used across the site. Colors are fixed brand colors (a logo shouldn't recolor).
  *
@@ -72,7 +72,7 @@ export function Logo({
           Healthy Logs
         </span>
         {showSuffix && (
-          <span className="log-stamp hidden sm:inline">· nutrition, logged</span>
+          <span className="log-stamp hidden sm:inline">· wellness, logged</span>
         )}
       </span>
     </span>
