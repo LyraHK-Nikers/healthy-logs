@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Find your supplement",
   description:
-    "Answer three quick questions and get a research-backed supplement starting point, plus the guides to back it up. No account needed.",
+    "Answer a few quick questions and get a research-backed supplement starting point, plus the guides to back it up. No account needed.",
   path: "/quiz",
 });
 
@@ -23,8 +23,8 @@ export default function QuizPage() {
           Find your supplement
         </h1>
         <p className="mx-auto mt-3 max-w-md text-md text-ink-soft">
-          Three quick questions. No account, no jargon — just a research-backed
-          place to start.
+          A few quick taps. No account, no jargon — just a research-backed
+          place to start, made around your answers.
         </p>
       </header>
 
