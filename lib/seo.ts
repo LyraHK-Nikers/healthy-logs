@@ -65,7 +65,7 @@ export function organizationJsonLd() {
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
-    logo: abs("/logo.svg"),
+    logo: abs("/brand/healthy-logs-emblem-512.png"),
     description: siteConfig.description,
   };
 }
@@ -122,7 +122,7 @@ export function articleJsonLd(
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
-      logo: { "@type": "ImageObject", url: abs("/logo.svg") },
+      logo: { "@type": "ImageObject", url: abs("/brand/healthy-logs-emblem-512.png") },
     },
   };
 }

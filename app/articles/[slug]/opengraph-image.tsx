@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { articleIndex } from "@/lib/articleIndex.generated";
 import { getCategoryName } from "@/config/categories";
 import { siteConfig } from "@/config/site";
+import { EMBLEM_DATA_URI } from "@/lib/brandMark";
 
 /**
  * Per-article social-share image (1200×630) with the article's title + category.
@@ -14,8 +15,6 @@ export const alt = "Healthy Logs article";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const MARK = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 40 40"><rect width="40" height="40" rx="11" fill="#2F6B4F"/><g transform="rotate(-8 20 19)"><path d="M20 7C26 11 26 20.5 20 27.5C14 20.5 14 11 20 7Z" fill="#FBFBF9"/><path d="M20 10.5V26" stroke="#2F6B4F" stroke-width="1.4" stroke-linecap="round"/><path d="M20 16.5L23.4 14" stroke="#2F6B4F" stroke-width="1.2" stroke-linecap="round"/><path d="M20 20.5L16.6 18" stroke="#2F6B4F" stroke-width="1.2" stroke-linecap="round"/></g><rect x="12.5" y="31" width="15" height="2.2" rx="1.1" fill="#C9A24B"/></svg>`;
-
 export default function ArticleOgImage({
   params,
 }: {
@@ -24,7 +23,7 @@ export default function ArticleOgImage({
   const entry = articleIndex.find((e) => e.slug === params.slug);
   const title = entry?.title ?? siteConfig.name;
   const category = entry ? getCategoryName(entry.category).toUpperCase() : "";
-  const markSrc = `data:image/svg+xml,${encodeURIComponent(MARK)}`;
+  const markSrc = EMBLEM_DATA_URI;
 
   return new ImageResponse(
     (

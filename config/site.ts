@@ -28,7 +28,6 @@ export const siteConfig = {
     { label: "Articles", href: "/articles" },
     { label: "Tools", href: "/tools" },
     { label: "About", href: "/about" },
-    { label: "Editorial policy", href: "/editorial-policy" },
     { label: "Contact", href: "/contact" },
   ],
   // Footer legal links — required trust signal on YMYL sites (LEGAL_TEMPLATES.md)
