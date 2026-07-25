@@ -32,6 +32,13 @@ const ICONS = {
   waves: "M3 8h10a2 2 0 1 0-2-2M3 12h13a2 2 0 1 1-2 2M3 16h7a2 2 0 1 1-2 2",
   shield: "M12 3 5 6v5c0 4 3 7 7 8 4-1 7-4 7-8V6l-7-3Z",
   bar: "M4 9v6M7 8v8M17 8v8M20 9v6M7 12h10",
+  battery: "M2 9h13v6H2z M18 11v2 M4 11h2v2H4z",
+  zigzag: "M3 15l4-5 3 4 4-6 4 5",
+  spark: "M12 3v4 M12 17v4 M3 12h4 M17 12h4 M5.6 5.6l2.8 2.8 M15.6 15.6l2.8 2.8 M18.4 5.6l-2.8 2.8 M8.4 15.6l-2.8 2.8",
+  smile: "M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17 M8.5 14a4 4 0 0 0 7 0 M9 10h.01 M15 10h.01",
+  ring: "M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z",
+  calendar: "M4.5 6h15v14h-15z M4.5 10h15 M9 4v3 M15 4v3",
+  flask: "M9.5 3.5h5 M11 3.5v6l-4.2 7.4a2 2 0 0 0 1.8 3h6.8a2 2 0 0 0 1.8-3L13 9.5v-6 M8 14h8",
 } as const;
 
 function Icon({ name }: { name: keyof typeof ICONS }) {
@@ -104,35 +111,35 @@ const QUESTION: Record<QKey, { q: string; opts: Opt[] }> = {
   feeling: {
     q: FLOW.feeling.question,
     opts: [
-      { v: "empty", label: FLOW.feeling.labels.empty },
-      { v: "updown", label: FLOW.feeling.labels.updown },
-      { v: "stressed", label: FLOW.feeling.labels.stressed },
-      { v: "good", label: FLOW.feeling.labels.good },
+      { v: "empty", label: FLOW.feeling.labels.empty, icon: "battery" },
+      { v: "updown", label: FLOW.feeling.labels.updown, icon: "zigzag" },
+      { v: "stressed", label: FLOW.feeling.labels.stressed, icon: "spark" },
+      { v: "good", label: FLOW.feeling.labels.good, icon: "smile" },
     ],
   },
   diet: {
     q: "How would you describe your eating?",
     opts: [
-      { v: "balanced", label: "Pretty balanced" },
-      { v: "plant", label: "Mostly plant-based" },
-      { v: "lowveg", label: "Low on fruit and veg" },
-      { v: "unsure", label: "Honestly, not sure" },
+      { v: "balanced", label: "Pretty balanced", icon: "leaf" },
+      { v: "plant", label: "Mostly plant-based", icon: "leaf" },
+      { v: "lowveg", label: "Low on fruit and veg", icon: "waves" },
+      { v: "unsure", label: "Honestly, not sure", icon: "smile" },
     ],
   },
   activity: {
     q: FLOW.activity.question,
     opts: [
-      { v: "rest", label: FLOW.activity.labels.rest },
-      { v: "light", label: FLOW.activity.labels.light },
-      { v: "active", label: FLOW.activity.labels.active },
+      { v: "rest", label: FLOW.activity.labels.rest, icon: "moon" },
+      { v: "light", label: FLOW.activity.labels.light, icon: "waves" },
+      { v: "active", label: FLOW.activity.labels.active, icon: "bar" },
     ],
   },
   style: {
     q: "How do you like to take things?",
     opts: [
-      { v: "simple", label: "Keep it simple, one thing" },
-      { v: "routine", label: "A small daily routine" },
-      { v: "evidence", label: "Whatever the evidence says" },
+      { v: "simple", label: "Keep it simple, one thing", icon: "ring" },
+      { v: "routine", label: "A small daily routine", icon: "calendar" },
+      { v: "evidence", label: "Whatever the evidence says", icon: "flask" },
     ],
   },
 };
@@ -160,6 +167,16 @@ const SEQUENCE: Step[] = [
 const BUILDING_INDEX = SEQUENCE.findIndex((s) => s.kind === "building");
 const TOTAL_Q = SEQUENCE.filter((s) => s.kind === "q").length;
 
+// Word used in the personalised "Building your ___ plan" heading.
+const GOAL_WORD: Record<Goal, string> = {
+  sleep: "sleep",
+  energy: "energy",
+  gut: "gut",
+  stress: "calm",
+  immunity: "immunity",
+  recovery: "recovery",
+};
+
 /* ------------------------------------------------------------------ main */
 
 export function SupplementQuiz() {
@@ -171,6 +188,7 @@ export function SupplementQuiz() {
   const [live, setLive] = useState("");
 
   const interacted = useRef(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const breakdownRef = useRef<HTMLDivElement>(null);
 
@@ -234,7 +252,14 @@ export function SupplementQuiz() {
   // Focus + announce on each step change (never on first mount).
   useEffect(() => {
     if (!interacted.current) return;
-    screenRef.current?.focus();
+    // Keep the quiz card anchored in view as the screen swaps, then move focus
+    // without letting the browser double-scroll.
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    cardRef.current?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "start",
+    });
+    screenRef.current?.focus({ preventScroll: true });
     const s = SEQUENCE[index];
     if (s.kind === "result") setLive(`Your starting point: ${REC_NAME[goal]}.`);
     else if (s.kind === "q") setLive(QUESTION[s.key].q);
@@ -266,7 +291,7 @@ export function SupplementQuiz() {
           : "•••";
 
   return (
-    <div className="card mx-auto max-w-xl p-6 sm:p-8">
+    <div ref={cardRef} className="card mx-auto max-w-xl scroll-mt-24 p-6 sm:p-8">
       <div aria-live="polite" className="sr-only">
         {live}
       </div>
@@ -295,6 +320,7 @@ export function SupplementQuiz() {
         {step.kind === "q" && (
           <QuestionCard
             qkey={step.key}
+            current={answers[step.key]}
             onChoose={choose}
             onBack={back}
             showBack={index > 0}
@@ -309,7 +335,9 @@ export function SupplementQuiz() {
             onContinue={advance}
           />
         )}
-        {step.kind === "building" && <BuildingScreen onDone={advance} />}
+        {step.kind === "building" && (
+          <BuildingScreen goal={goal} onDone={advance} />
+        )}
         {step.kind === "result" && (
           <ResultView
             goal={goal}
@@ -332,37 +360,69 @@ export function SupplementQuiz() {
 
 function QuestionCard({
   qkey,
+  current,
   onChoose,
   onBack,
   showBack,
 }: {
   qkey: QKey;
+  current?: string;
   onChoose: (key: string, value: string) => void;
   onBack: () => void;
   showBack: boolean;
 }) {
   const { q, opts } = QUESTION[qkey];
+  // `picked` = the option tapped this visit (drives the confirm animation);
+  // `current` = a previously chosen answer, shown highlighted when you go Back.
+  const [picked, setPicked] = useState<string | null>(null);
+  const timer = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  const active = picked ?? current ?? null;
+  const handle = (v: string) => {
+    if (picked) return; // ignore double-taps mid-transition
+    setPicked(v);
+    timer.current = window.setTimeout(() => onChoose(qkey, v), 300);
+  };
+
   return (
     <div>
       <h2 className="font-display text-xl leading-snug text-ink sm:text-2xl">{q}</h2>
       <div className="mt-5 space-y-2.5">
-        {opts.map((o) => (
-          <button
-            key={o.v}
-            type="button"
-            onClick={() => onChoose(qkey, o.v)}
-            className="group flex w-full items-center gap-3 rounded-card border border-line bg-surface px-4 py-3.5 text-left text-md text-ink transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_8px_24px_-16px_rgba(28,37,32,0.4)]"
-          >
-            {o.icon && <Icon name={o.icon} />}
-            <span className="flex-1">{o.label}</span>
-            <span
-              className="translate-x-0 text-line transition-all group-hover:translate-x-1 group-hover:text-accent"
-              aria-hidden="true"
+        {opts.map((o) => {
+          const isActive = o.v === active;
+          return (
+            <button
+              key={o.v}
+              type="button"
+              onClick={() => handle(o.v)}
+              aria-pressed={isActive}
+              className={`group flex w-full items-center gap-3 rounded-card border px-4 py-3.5 text-left text-md text-ink transition-all ${
+                isActive
+                  ? "border-accent bg-accent-soft"
+                  : "border-line bg-surface hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_8px_24px_-16px_rgba(28,37,32,0.4)]"
+              }`}
             >
-              →
-            </span>
-          </button>
-        ))}
+              {o.icon && <Icon name={o.icon} />}
+              <span className="flex-1">{o.label}</span>
+              {isActive ? (
+                <Check className="h-5 w-5 text-accent" />
+              ) : (
+                <span
+                  className="text-line transition-all group-hover:translate-x-1 group-hover:text-accent"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
       {showBack && (
         <button
@@ -391,7 +451,7 @@ function useAutoAdvance(ms: number, onDone: () => void) {
 }
 
 function ReactionScreen({ text, onContinue }: { text: string; onContinue: () => void }) {
-  useAutoAdvance(1700, onContinue);
+  useAutoAdvance(1900, onContinue);
   return (
     <div className="py-4 text-center">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft">
@@ -431,7 +491,7 @@ function CoachScreen({
   );
 }
 
-function BuildingScreen({ onDone }: { onDone: () => void }) {
+function BuildingScreen({ goal, onDone }: { goal: Goal; onDone: () => void }) {
   const [pct, setPct] = useState(0);
   const [msg, setMsg] = useState(0);
 
@@ -466,7 +526,9 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
   return (
     <div className="py-4 text-center">
       <p className="eyebrow">Almost ready</p>
-      <h2 className="mt-2 font-display text-2xl text-ink">{FLOW.building.heading}</h2>
+      <h2 className="mt-2 font-display text-2xl text-ink">
+        Building your {GOAL_WORD[goal]} plan
+      </h2>
 
       <div className="relative mx-auto mt-6 h-32 w-32">
         <svg viewBox="0 0 120 120" className="h-32 w-32 -rotate-90">
