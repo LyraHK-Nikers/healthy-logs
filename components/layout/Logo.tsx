@@ -3,7 +3,7 @@
  * a sprouting figure. The raster mark lives in /public/brand.
  *
  * <LogoMark> = the emblem alone (favicon, avatars, compact spots).
- * <Logo>     = emblem + "Healthy Logs" wordmark in Fraunces.
+ * <Logo>     = emblem + "Healthy Logs" wordmark in DM Serif Display.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -30,7 +30,7 @@ export function Logo({
     <span className={`inline-flex items-center gap-2.5 ${className ?? ""}`}>
       <LogoMark className={markClassName} />
       <span className="flex items-baseline gap-2">
-        <span className="font-display text-lg font-semibold leading-none text-ink">
+        <span className="font-display text-lg leading-none text-ink">
           Healthy Logs
         </span>
         {showSuffix && (

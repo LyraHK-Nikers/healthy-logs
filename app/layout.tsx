@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+import { DM_Serif_Display, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -9,12 +9,15 @@ import { CookieConsent } from "@/components/layout/CookieConsent";
 import { ComingSoon } from "@/components/layout/ComingSoon";
 import { siteConfig } from "@/config/site";
 
-/* Typography roles — DESIGN_SYSTEM.md §Typography */
-const fraunces = Fraunces({
+/* Typography roles — DESIGN_SYSTEM.md §Typography
+   Display face is DM Serif Display: a single 400 weight (plus italic), so never
+   pair it with font-semibold/bold — the browser would synthesise a fake bold. */
+const dmSerif = DM_Serif_Display({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-dm-serif",
   display: "swap",
-  axes: ["opsz"],
 });
 
 const inter = Inter({
@@ -73,7 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fraunces.variable} ${plexMono.variable}`}
+      className={`${inter.variable} ${dmSerif.variable} ${plexMono.variable}`}
     >
       <body className="flex min-h-screen flex-col">
         {SITE_LIVE ? (

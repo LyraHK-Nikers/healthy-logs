@@ -7,7 +7,7 @@ import { siteConfig } from "@/config/site";
 import { Logo } from "@/components/layout/Logo";
 
 /**
- * Global header. Wordmark in Fraunces; inline nav on desktop, a toggle menu on
+ * Global header. Wordmark in DM Serif Display; inline nav on desktop, a toggle menu on
  * mobile (closes on navigation). Quiet top rule echoes the "log" ruling.
  */
 export function Header() {

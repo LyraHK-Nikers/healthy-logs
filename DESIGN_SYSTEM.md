@@ -42,9 +42,9 @@ Rules:
 
 Two real roles + one utility. Use Google Fonts via `next/font`.
 
-- **Display / headings:** `Fraunces` (a characterful serif with optical sizing) — used with
-  restraint, only for h1/h2 and the wordmark. It gives editorial credibility without being the
-  overused high-contrast Playfair look.
+- **Display / headings:** `DM Serif Display` — a confident, high-contrast modern serif, used
+  for h1/h2/h3 and the wordmark. NOTE: it ships a single 400 weight (plus italic), so never
+  pair `font-display` with `font-semibold`/`font-bold` — the browser would fake the bold.
 - **Body:** `Inter` — clean, highly legible at small sizes for long nutrition articles.
 - **Utility / data:** `IBM Plex Mono` — for the log-date stamp, "updated" markers, citation
   numbers, and product data (price, rating). This monospace is the thread that ties the

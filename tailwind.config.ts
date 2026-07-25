@@ -25,7 +25,7 @@ const config: Config = {
       },
       fontFamily: {
         // wired to next/font CSS variables in app/layout.tsx
-        display: ["var(--font-fraunces)", "Georgia", "serif"],
+        display: ["var(--font-dm-serif)", "Georgia", "serif"],
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         mono: ["var(--font-plex-mono)", "ui-monospace", "monospace"],
       },
