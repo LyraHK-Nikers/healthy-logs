@@ -175,8 +175,8 @@ ${e ? "" : `<label for="file">Upload a file (.docx, .md, .txt) — optional if y
 <div><label for="type">Type</label><select id="type"><option value="informational"${sel("informational", e?.type ?? "informational")}>informational</option><option value="commercial"${sel("commercial", e?.type ?? "")}>commercial</option></select></div>
 </div>
 <div class="row">
-<div><label for="author">Author slug</label><input id="author" type="text" value="${esc(e?.author ?? "jane-doe")}"></div>
-<div><label for="reviewer">Reviewer slug (optional)</label><input id="reviewer" type="text" value="${esc(e?.reviewer ?? "")}" placeholder="dr-smith-rd"></div>
+<div><label for="author">Author slug</label><input id="author" type="text" value="${esc(e?.author ?? getAllArticles()[0]?.frontmatter.author ?? "")}"></div>
+<div><label for="reviewer">Reviewer slug (optional)</label><input id="reviewer" type="text" value="${esc(e?.reviewer ?? "")}" placeholder="e.g. the nutritionist's slug"></div>
 </div>
 <label for="excerpt">Excerpt (optional — auto from first paragraph if blank)</label>
 <textarea id="excerpt" placeholder="One-sentence summary">${esc(e?.excerpt ?? "")}</textarea>

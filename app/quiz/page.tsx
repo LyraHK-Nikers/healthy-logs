@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { SupplementQuiz } from "@/components/quiz/SupplementQuiz";
 import { pageMetadata } from "@/lib/seo";
+import { getAllArticles } from "@/lib/content";
 
 export const metadata: Metadata = pageMetadata({
   title: "Find your supplement",
@@ -11,6 +12,10 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default function QuizPage() {
+  const liveCategories = Array.from(
+    new Set(getAllArticles().map((a) => a.frontmatter.category)),
+  );
+
   return (
     <div className="mx-auto max-w-article px-5 py-10">
       <Breadcrumbs
@@ -29,7 +34,7 @@ export default function QuizPage() {
       </header>
 
       <div className="mt-8">
-        <SupplementQuiz />
+        <SupplementQuiz liveCategories={liveCategories} />
       </div>
     </div>
   );

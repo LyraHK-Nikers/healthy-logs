@@ -68,7 +68,7 @@ export default function ArticleOgImage({
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ width: 56, height: 6, background: "#C9A24B", borderRadius: 3 }} />
           <div style={{ fontSize: 24, color: "#4A554E" }}>
-            Evidence-based · dietitian-reviewed
+            Evidence-based · expert-reviewed
           </div>
         </div>
       </div>

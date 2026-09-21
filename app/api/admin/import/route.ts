@@ -11,7 +11,7 @@ import {
   commitImage,
   ghConfigured,
 } from "@/lib/admin";
-import { getArticleBySlug } from "@/lib/content";
+import { getAllArticles, getArticleBySlug } from "@/lib/content";
 import { marked } from "marked";
 
 export const runtime = "nodejs";
@@ -121,7 +121,11 @@ export async function POST(req: Request) {
     excerpt,
     category,
     type: type as "informational" | "commercial",
-    author: str("author") || existing?.author || "jane-doe",
+    author:
+      str("author") ||
+      existing?.author ||
+      getAllArticles()[0]?.frontmatter.author ||
+      "healthy-logs",
     reviewer: str("reviewer") || existing?.reviewer || undefined,
     tags: tags.length ? tags : existing?.tags ?? [],
     featured: str("featured") === "true",

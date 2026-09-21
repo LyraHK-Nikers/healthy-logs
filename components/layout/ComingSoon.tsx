@@ -28,7 +28,7 @@ export function ComingSoon() {
           <NewsletterForm />
         </div>
 
-        <p className="log-stamp mt-10">LOG 2026 · dietitian-reviewed wellness</p>
+        <p className="log-stamp mt-10">LOG 2026 · expert-reviewed wellness</p>
       </div>
     </div>
   );

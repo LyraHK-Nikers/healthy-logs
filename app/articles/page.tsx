@@ -27,6 +27,8 @@ export default function ArticlesIndexPage({
     : undefined;
 
   const all = getAllArticles();
+  // Filter chips only for topics that have articles (no dead-end filters).
+  const liveCats = new Set(all.map((a) => a.frontmatter.category));
   const filtered = validCategory
     ? all.filter((a) => a.frontmatter.category === validCategory.slug)
     : all;
@@ -60,7 +62,9 @@ export default function ArticlesIndexPage({
       {/* category filter chips */}
       <nav aria-label="Filter by category" className="mb-8 flex flex-wrap gap-2">
         <FilterChip label="All" href="/articles" active={!validCategory} />
-        {categories.map((c) => (
+        {categories
+          .filter((c) => liveCats.has(c.slug))
+          .map((c) => (
           <FilterChip
             key={c.slug}
             label={c.name}

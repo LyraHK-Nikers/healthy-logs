@@ -50,21 +50,25 @@ export default function AboutPage() {
         <Link href="/medical-disclaimer">medical disclaimer</Link>.
       </p>
 
-      <h2>The team</h2>
-      <p>Our writers and reviewers (sample profiles during development):</p>
-      <ul>
-        {authors.map((a) => (
-          <li key={a.frontmatter.slug}>
-            <Link href={`/authors/${a.frontmatter.slug}`}>
-              {a.frontmatter.name}
-              {a.frontmatter.credentials
-                ? `, ${a.frontmatter.credentials}`
-                : ""}
-            </Link>{" "}
-            — {a.frontmatter.role === "reviewer" ? "Reviewer" : "Writer"}
-          </li>
-        ))}
-      </ul>
+      {authors.length > 0 && (
+        <>
+          <h2>The team</h2>
+          <p>The people who write and review our guides:</p>
+          <ul>
+            {authors.map((a) => (
+              <li key={a.frontmatter.slug}>
+                <Link href={`/authors/${a.frontmatter.slug}`}>
+                  {a.frontmatter.name}
+                  {a.frontmatter.credentials
+                    ? `, ${a.frontmatter.credentials}`
+                    : ""}
+                </Link>{" "}
+                — {a.frontmatter.role === "reviewer" ? "Reviewer" : "Writer"}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </LegalPage>
   );
 }

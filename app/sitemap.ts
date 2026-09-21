@@ -37,7 +37,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  const categories = categorySlugs.map((slug) => ({
+  // Only topics that have articles — empty category pages are thin content.
+  const liveCats = new Set(getAllArticles().map((a) => a.frontmatter.category));
+  const categories = categorySlugs
+    .filter((slug) => liveCats.has(slug))
+    .map((slug) => ({
     url: `${base}/category/${slug}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,

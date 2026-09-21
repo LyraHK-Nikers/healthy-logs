@@ -157,7 +157,8 @@ export function buildMdx(f: ArticleFields): string {
     publishedAt: f.publishedAt || today,
     updatedAt: today,
     tags: f.tags,
-    medicallyReviewed: true,
+    // Only claim a review when a reviewer is actually named.
+    medicallyReviewed: Boolean(f.reviewer),
     featured: f.featured,
   };
   if (f.reviewer) data.reviewer = f.reviewer;

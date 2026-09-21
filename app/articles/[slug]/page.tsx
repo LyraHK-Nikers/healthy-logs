@@ -165,7 +165,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
 
           <AuthorCard author={author} label="Written by" />
           {fm.reviewer && reviewer && (
-            <AuthorCard author={reviewer} label="Medically reviewed by" />
+            <AuthorCard author={reviewer} label="Reviewed by" />
           )}
         </div>
 

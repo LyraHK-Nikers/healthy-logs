@@ -1,7 +1,7 @@
 /**
  * Content for the "Find your supplement" quiz.
  *
- * DETAILS = the in-depth, dietitian-style breakdown shown on the result screen
+ * DETAILS = the in-depth breakdown shown on the result screen
  * (gated behind the email signup). Every entry was drafted, editor-reviewed, and
  * run through an adversarial YMYL compliance audit — keep the hedged, food-first,
  * "see a clinician" framing if you edit it. Not medical advice.

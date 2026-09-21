@@ -106,9 +106,9 @@ export function articleJsonLd(
   const url = abs(`/articles/${fm.slug}`);
   return {
     "@context": "https://schema.org",
-    // Strongly medical content can be marked MedicalWebPage; Article is the safe
-    // default for general nutrition guides.
-    "@type": fm.medicallyReviewed ? "MedicalWebPage" : "Article",
+    // Article, not MedicalWebPage: MedicalWebPage implies review by a medical
+    // professional. Only switch back once reviewers' credentials are confirmed.
+    "@type": "Article",
     headline: fm.title,
     description: fm.excerpt,
     author: personJsonLd(author, fm.author),

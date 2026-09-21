@@ -3,7 +3,7 @@ import type { Author } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
 
 /**
- * "Medically reviewed by …" line — a strong trust signal for YMYL health
+ * "Reviewed by …" line — a strong trust signal for YMYL health
  * content (SEO_REQUIREMENTS.md §4). Green check, never neon.
  * Phase 4 may extend this into a fuller "fact-checked" component.
  */
@@ -23,7 +23,7 @@ export function ReviewerBadge({
     <p className="flex flex-wrap items-center gap-1.5 text-sm text-ink-soft">
       <CheckIcon />
       <span>
-        Medically reviewed by{" "}
+        Reviewed by{" "}
         {reviewer ? (
           <Link
             href={`/authors/${reviewer.frontmatter.slug}`}

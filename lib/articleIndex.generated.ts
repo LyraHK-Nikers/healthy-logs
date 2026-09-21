@@ -2,21 +2,6 @@
 export type ArticleIndexEntry = { slug: string; title: string; category: string };
 export const articleIndex: ArticleIndexEntry[] = [
   {
-    "slug": "best-electrolyte-powders",
-    "title": "Best Electrolyte Powders, Tested and Compared (2026)",
-    "category": "sports-nutrition"
-  },
-  {
-    "slug": "is-creatine-safe-for-women",
-    "title": "Is Creatine Safe for Women? What the Research Says",
-    "category": "sports-nutrition"
-  },
-  {
-    "slug": "magnesium-glycinate-vs-citrate",
-    "title": "Magnesium Glycinate vs Citrate: Which Is Better for Sleep?",
-    "category": "minerals"
-  },
-  {
     "slug": "the-two-families-of-vitamins",
     "title": "The two families of vitamins",
     "category": "vitamins"

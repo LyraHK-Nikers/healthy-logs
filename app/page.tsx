@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { getAllArticles, getFeaturedArticles } from "@/lib/content";
+import {
+  getAllArticles,
+  getAuthorBySlug,
+  getFeaturedArticles,
+} from "@/lib/content";
 import { categories, getCategoryName } from "@/config/categories";
 import { siteConfig } from "@/config/site";
 import { readingTime } from "@/lib/utils";
@@ -18,6 +22,15 @@ export default function HomePage() {
   const spotlight = featured[0];
   const rest = featured.slice(1, 4);
 
+  // The hero "log entry" card shows the newest real article (never a mockup).
+  const latest = allArticles[0];
+  const latestAuthor = latest ? getAuthorBySlug(latest.frontmatter.author) : null;
+  const latestAuthorName = latestAuthor
+    ? [latestAuthor.frontmatter.name, latestAuthor.frontmatter.credentials]
+        .filter(Boolean)
+        .join(", ")
+    : latest?.frontmatter.author ?? "";
+
   // Articles already shown in the spotlight block, so the grid below never repeats them.
   const shownSlugs = new Set(
     [spotlight, ...rest.slice(0, 2)].filter(Boolean).map((a) => a.frontmatter.slug),
@@ -33,13 +46,11 @@ export default function HomePage() {
     },
     {},
   );
-  // Only surface categories that actually have articles (fall back to all if none yet).
-  const populatedCategories = categories.filter(
+  // Only surface categories that actually have articles; a single tile isn't
+  // worth a whole section, so "Browse by topic" appears from two topics up.
+  const shownCategories = categories.filter(
     (c) => (countByCategory[c.slug] ?? 0) > 0,
   );
-  const shownCategories = populatedCategories.length
-    ? populatedCategories
-    : categories;
 
   return (
     <div>
@@ -72,9 +83,11 @@ export default function HomePage() {
           </div>
 
           {/* the "log entry" signature, as a designed visual */}
-          <div className="reveal hidden lg:block" style={{ ["--d" as string]: "120ms" }}>
-            <LogEntryMockup />
-          </div>
+          {latest && (
+            <div className="reveal hidden lg:block" style={{ ["--d" as string]: "120ms" }}>
+              <LogEntryCard article={latest} authorName={latestAuthorName} />
+            </div>
+          )}
         </div>
       </section>
 
@@ -96,9 +109,29 @@ export default function HomePage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <Spotlight article={spotlight} />
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-                {rest.slice(0, 2).map((a) => (
-                  <CompactRow key={a.frontmatter.slug} article={a} />
-                ))}
+                {rest.length > 0 ? (
+                  rest.slice(0, 2).map((a) => (
+                    <CompactRow key={a.frontmatter.slug} article={a} />
+                  ))
+                ) : (
+                  // Not enough articles yet: fill the column with the free tools.
+                  <>
+                    <ToolRow
+                      href="/tools"
+                      eyebrow="Free tools"
+                      title="Protein & hydration calculators"
+                      note="No signup · 30 seconds"
+                      icon={ICON_CALC}
+                    />
+                    <ToolRow
+                      href="/myths"
+                      eyebrow="Game"
+                      title="Myth or fact? Test what you know"
+                      note="10 quick claims"
+                      icon={ICON_QUESTION}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </section>
@@ -144,7 +177,8 @@ export default function HomePage() {
         </section>
 
         {/* ===================================================== Categories */}
-        <section className="py-12">
+        {shownCategories.length > 1 && (
+          <section className="py-12">
           <SectionHeading title="Browse by topic" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shownCategories.map((category, i) => (
@@ -160,7 +194,8 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </section>
+          </section>
+        )}
 
         {/* ==================================================== Newsletter */}
         <section className="my-12 overflow-hidden rounded-card border border-line bg-accent-soft">
@@ -171,7 +206,7 @@ export default function HomePage() {
                 Get new logs in your inbox
               </h2>
               <p className="mt-2 mb-5 text-sm text-ink-soft">
-                Occasional, dietitian-reviewed wellness &amp; supplement notes.
+                Occasional, expert-reviewed wellness &amp; supplement notes.
               </p>
               <NewsletterForm />
             </div>
@@ -280,36 +315,104 @@ function CompactRow({ article }: { article: Article }) {
   );
 }
 
-function LogEntryMockup() {
+const ICON_CALC =
+  "M6 3h12v18H6z M9 7h6 M9 11h.01 M12 11h.01 M15 11h.01 M9 15h.01 M12 15h.01 M15 15h.01";
+const ICON_QUESTION =
+  "M12 3.5a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17 M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6 M12 17h.01";
+
+function ToolRow({
+  href,
+  eyebrow,
+  title,
+  note,
+  icon,
+}: {
+  href: string;
+  eyebrow: string;
+  title: string;
+  note: string;
+  icon: string;
+}) {
   return (
-    <div className="relative rounded-card border border-line bg-surface p-7 shadow-[0_20px_50px_-30px_rgba(28,37,32,0.4)]">
+    <Link href={href} className="card card-hover group flex items-center gap-4 p-4">
+      <span className="flex h-20 w-24 shrink-0 items-center justify-center rounded-card bg-accent-soft">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-7 w-7 text-accent"
+          aria-hidden="true"
+        >
+          <path d={icon} />
+        </svg>
+      </span>
+      <div className="min-w-0">
+        <span className="eyebrow">{eyebrow}</span>
+        <h3 className="mt-1 line-clamp-2 font-display text-md leading-snug text-ink transition-colors group-hover:text-accent">
+          {title}
+        </h3>
+        <p className="log-stamp mt-1">{note}</p>
+      </div>
+    </Link>
+  );
+}
+
+/** The hero's "log entry" signature: the newest real article, clickable. */
+function LogEntryCard({
+  article,
+  authorName,
+}: {
+  article: Article;
+  authorName: string;
+}) {
+  const fm = article.frontmatter;
+  const initials = authorName
+    .split(/[\s,]+/)
+    .filter((w) => /^[A-Za-z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
+  const updated = fm.updatedAt && fm.updatedAt !== fm.publishedAt;
+  return (
+    <Link
+      href={`/articles/${fm.slug}`}
+      className="group relative block rounded-card border border-line bg-surface p-7 shadow-[0_20px_50px_-30px_rgba(28,37,32,0.4)] transition-transform duration-200 hover:-translate-y-1"
+    >
       <div className="notebook-lines absolute inset-0 rounded-card opacity-40" aria-hidden="true" />
       <div className="relative">
-        <span className="eyebrow">Minerals</span>
-        <p className="mt-3 font-display text-2xl leading-tight text-ink">
-          Magnesium Glycinate vs Citrate: Which Is Better for Sleep?
+        <span className="eyebrow">{getCategoryName(fm.category)}</span>
+        <p className="mt-3 font-display text-2xl leading-tight text-ink transition-colors group-hover:text-accent">
+          {fm.title}
         </p>
         <div className="my-5 flex items-center gap-3">
           <span className="log-stamp whitespace-nowrap">
-            LOG 2026-06-20 · UPD 2026-06-25
+            LOG {fm.publishedAt}
+            {updated ? ` · UPD ${fm.updatedAt}` : ""}
           </span>
           <span className="h-px flex-1 bg-line" />
         </div>
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft font-display text-sm text-accent">
-            JD
+            {initials || "HL"}
           </span>
           <div className="text-sm">
-            <p className="text-ink">Jane Doe, MS RD</p>
-            <p className="flex items-center gap-1 text-xs text-accent">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Medically reviewed
-            </p>
+            <p className="text-ink">{authorName}</p>
+            {fm.reviewer ? (
+              <p className="flex items-center gap-1 text-xs text-accent">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Expert reviewed
+              </p>
+            ) : (
+              <p className="text-xs text-ink-soft">Latest log</p>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

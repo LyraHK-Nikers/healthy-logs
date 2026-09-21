@@ -16,7 +16,7 @@ import {
  *
  * One question per screen, tap-to-advance, warm reactions, reassuring "coach"
  * interstitials, and a "building your plan" moment for anticipation. The result
- * shows a free teaser; the in-depth, dietitian-style breakdown is unlocked with
+ * shows a free teaser; the in-depth breakdown is unlocked with
  * an email signup (all client-side; subscribe hits /api/subscribe).
  *
  * All recommendation copy is deliberately compliant and was compliance-audited
@@ -179,7 +179,12 @@ const GOAL_WORD: Record<Goal, string> = {
 
 /* ------------------------------------------------------------------ main */
 
-export function SupplementQuiz() {
+export function SupplementQuiz({
+  liveCategories,
+}: {
+  /** Categories that currently have at least one published article. */
+  liveCategories?: string[];
+} = {}) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [email, setEmail] = useState("");
@@ -349,6 +354,7 @@ export function SupplementQuiz() {
             subscribe={subscribe}
             restart={restart}
             breakdownRef={breakdownRef}
+            liveCategories={liveCategories}
           />
         )}
       </div>
@@ -570,6 +576,7 @@ function ResultView({
   subscribe,
   restart,
   breakdownRef,
+  liveCategories,
 }: {
   goal: Goal;
   answers: Record<string, string>;
@@ -580,10 +587,14 @@ function ResultView({
   subscribe: (e: React.FormEvent) => void;
   restart: () => void;
   breakdownRef: React.RefObject<HTMLDivElement>;
+  liveCategories?: string[];
 }) {
   const detail = DETAILS[goal];
   const recName = REC_NAME[goal];
   const category = CATEGORY_FOR[goal];
+  // Only send people to a topic that actually has guides; otherwise an empty
+  // "No articles yet" page would undercut the result.
+  const hasGuides = !liveCategories || liveCategories.includes(category);
   const unlocked = emailStatus === "done";
 
   const tips = [
@@ -624,12 +635,20 @@ function ResultView({
       )}
 
       <div className="mt-5 flex flex-wrap gap-3">
-        <Link href={`/category/${category}`} className="btn-primary">
-          Read the guides
-        </Link>
-        <Link href={`/articles?category=${category}`} className="btn-secondary">
-          See our top picks
-        </Link>
+        {hasGuides ? (
+          <>
+            <Link href={`/category/${category}`} className="btn-primary">
+              Read the guides
+            </Link>
+            <Link href={`/articles?category=${category}`} className="btn-secondary">
+              See our top picks
+            </Link>
+          </>
+        ) : (
+          <Link href="/articles" className="btn-secondary">
+            Browse all guides
+          </Link>
+        )}
       </div>
 
       <div className="mt-7">
@@ -704,7 +723,7 @@ function LockedPanel({
           <p className="font-display text-lg text-ink">Unlock your full breakdown</p>
         </div>
         <p className="mt-1 text-sm text-ink-soft">
-          Pop in your email to read the complete, dietitian-style guide to{" "}
+          Pop in your email to read the complete, in-depth guide to{" "}
           <strong className="text-ink">{recName}</strong> — free, and yours to keep.
         </p>
 
