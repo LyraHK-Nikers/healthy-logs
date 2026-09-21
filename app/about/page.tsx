@@ -12,7 +12,10 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default function AboutPage() {
-  const authors = getAllAuthors();
+  // The house "Healthy Logs" byline isn't a person, so it isn't listed as team.
+  const authors = getAllAuthors().filter(
+    (a) => a.frontmatter.slug !== "healthy-logs",
+  );
 
   return (
     <LegalPage
@@ -25,7 +28,7 @@ export default function AboutPage() {
         trustworthy again. The
         web is full of supplement hype and thin affiliate pages; we do the
         opposite. Every article is framed as a research log — a dated, revisited
-        entry — written by named authors, reviewed for accuracy, and grounded in
+        entry — carefully researched, checked for accuracy, and grounded in
         peer-reviewed evidence.
       </p>
 

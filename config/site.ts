@@ -6,7 +6,7 @@ export const siteConfig = {
   name: "Healthy Logs",
   tagline: "Evidence-based wellness & supplements, logged and reviewed.",
   description:
-    "Expert-reviewed wellness guides and honest supplement comparisons. Every claim sourced, every author named.",
+    "Expert-reviewed wellness guides and honest supplement comparisons.",
   // Production domain (apex). If you serve on www instead, change to
   // "https://www.healthylogs.com" and set up the redirect in Hostinger.
   url: "https://healthylogs.com",
@@ -14,8 +14,8 @@ export const siteConfig = {
   email: "hello@healthylogs.com",
   // Shown on legal pages; bump when you revise the policies.
   legalLastUpdated: "June 26, 2026",
-  // Governing law for the Terms — REPLACE before launch.
-  jurisdiction: "[your jurisdiction]",
+  // Governing law for the Terms. TODO: name the state, e.g. "the State of Texas, United States".
+  jurisdiction: "the United States",
   // Paste the token from Google Search Console (URL-prefix → HTML tag) to verify
   // ownership; leave empty to omit the tag.
   googleSiteVerification: "",

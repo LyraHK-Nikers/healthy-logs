@@ -168,7 +168,7 @@ export default function HomePage() {
                 Not sure which supplement is right for you?
               </h2>
               <p className="mt-1 text-sm text-ink-soft">
-                Answer three quick questions and get a research-backed place to
+                Answer a few quick questions and get a research-backed place to
                 start.
               </p>
             </div>

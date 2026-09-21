@@ -36,10 +36,10 @@ export default function EditorialPolicyPage() {
 
       <h2>Who writes and who reviews</h2>
       <p>
-        Articles are written by named authors and, where appropriate, reviewed
-        by a qualified reviewer whose byline appears near the top of the
-        article. You can see who is behind the site on our{" "}
-        <a href="/about">about page</a> and on each author&rsquo;s profile.
+        Articles are written by the Healthy Logs team. When an article has
+        been checked by a qualified reviewer, their name appears near the top
+        of the article. You can read more about the site on our{" "}
+        <a href="/about">about page</a>.
       </p>
 
       <h2>How and how often we update</h2>
