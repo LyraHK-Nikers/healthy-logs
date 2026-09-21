@@ -34,28 +34,28 @@ export default function ArticleOgImage({
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#FBFBF9",
+          background: "#F5F7FF",
           padding: 80,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={markSrc} width={64} height={64} alt="" />
-          <div style={{ fontSize: 30, color: "#1C2520", fontWeight: 600 }}>
+          <div style={{ fontSize: 30, color: "#1C2140", fontWeight: 600 }}>
             Healthy Logs
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           {category && (
-            <div style={{ fontSize: 24, color: "#2F6B4F", letterSpacing: 3 }}>
+            <div style={{ fontSize: 24, color: "#3448C8", letterSpacing: 3 }}>
               {category}
             </div>
           )}
           <div
             style={{
               fontSize: 60,
-              color: "#1C2520",
+              color: "#1C2140",
               lineHeight: 1.1,
               marginTop: 16,
               maxWidth: 1000,
@@ -66,8 +66,8 @@ export default function ArticleOgImage({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 56, height: 6, background: "#C9A24B", borderRadius: 3 }} />
-          <div style={{ fontSize: 24, color: "#4A554E" }}>
+          <div style={{ width: 56, height: 6, background: "#8AA3FF", borderRadius: 3 }} />
+          <div style={{ fontSize: 24, color: "#515979" }}>
             Evidence-based · expert-reviewed
           </div>
         </div>

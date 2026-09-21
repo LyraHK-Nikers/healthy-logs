@@ -57,7 +57,7 @@ export default function HomePage() {
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
       {/* ============================================================= Hero */}
-      <section className="border-b border-line">
+      <section className="hero-sky border-b border-line">
         <div className="mx-auto grid max-w-container items-center gap-10 px-5 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
           <div className="reveal">
             <span className="chip">
@@ -69,14 +69,14 @@ export default function HomePage() {
               <br />
               actually trust.
             </h1>
-            <p className="mt-5 max-w-md text-md text-ink-soft">
+            <p className="mt-5 max-w-md text-md text-ink">
               {siteConfig.description}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/articles" className="btn-primary">
                 Read the guides →
               </Link>
-              <Link href="/editorial-policy" className="btn-secondary">
+              <Link href="/editorial-policy" className="btn-secondary btn-on-sky">
                 How we review
               </Link>
             </div>
@@ -379,7 +379,7 @@ function LogEntryCard({
   return (
     <Link
       href={`/articles/${fm.slug}`}
-      className="group relative block rounded-card border border-line bg-surface p-7 shadow-[0_20px_50px_-30px_rgba(28,37,32,0.4)] transition-transform duration-200 hover:-translate-y-1"
+      className="group relative block rounded-card border border-line bg-surface p-7 shadow-[0_20px_50px_-30px_rgba(28,33,64,0.4)] transition-transform duration-200 hover:-translate-y-1"
     >
       <div className="notebook-lines absolute inset-0 rounded-card opacity-40" aria-hidden="true" />
       <div className="relative">

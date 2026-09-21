@@ -26,14 +26,14 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#FBFBF9",
+          background: "#F5F7FF",
           padding: 80,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={markSrc} width={84} height={84} alt="" />
-          <div style={{ fontSize: 40, color: "#1C2520", fontWeight: 600 }}>
+          <div style={{ fontSize: 40, color: "#1C2140", fontWeight: 600 }}>
             Healthy Logs
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function OpengraphImage() {
           <div
             style={{
               fontSize: 70,
-              color: "#1C2520",
+              color: "#1C2140",
               lineHeight: 1.05,
               maxWidth: 940,
             }}
@@ -50,8 +50,8 @@ export default function OpengraphImage() {
             Wellness you can actually trust.
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 34 }}>
-            <div style={{ width: 64, height: 6, background: "#C9A24B", borderRadius: 3 }} />
-            <div style={{ fontSize: 28, color: "#4A554E" }}>{siteConfig.tagline}</div>
+            <div style={{ width: 64, height: 6, background: "#8AA3FF", borderRadius: 3 }} />
+            <div style={{ fontSize: 28, color: "#515979" }}>{siteConfig.tagline}</div>
           </div>
         </div>
       </div>

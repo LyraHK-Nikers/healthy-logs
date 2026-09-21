@@ -7,15 +7,29 @@
    Light, clean, clinical-warm. One grounded green accent + rare brass.
    ------------------------------------------------------------------ */
 :root {
-  --bg: #fbfbf9; /* soft off-white, slightly warm */
+  --bg: #f5f7ff; /* soft periwinkle white */
   --surface: #ffffff; /* cards */
-  --ink: #1c2520; /* near-black with a green undertone */
-  --ink-soft: #4a554e; /* secondary text */
-  --line: #e4e6e1; /* hairline borders / rules */
-  --accent: #2f6b4f; /* deep, calm green */
-  --accent-soft: #eaf2ec; /* accent wash for tags/badges */
-  --highlight: #c9a24b; /* bright brass — star-rating fills + decorative accents */
-  --highlight-text: #8a6a1e; /* darker brass for TEXT (log stamps/captions) — passes WCAG AA on --bg */
+  --ink: #1c2140; /* deep navy ink */
+  --ink-soft: #515979; /* secondary text */
+  --line: #d9dff5; /* hairline borders / rules */
+  --accent: #3448c8; /* royal blue — buttons, links, eyebrows */
+  --accent-soft: #e8edff; /* periwinkle wash for tags/badges/panels */
+  --highlight: #8aa3ff; /* sky — star-rating fills + decorative accents */
+  --highlight-text: #4e5aa6; /* muted indigo for TEXT (log stamps/captions) — ~5.9:1 on --bg (AA) */
+
+  /* Homepage hero sky */
+  --sky: #8aa3ff;
+  --sky-band: #7892fe;
+  --sky-glow: #a2b9ff;
+  --hero-bg: linear-gradient(
+    180deg,
+    var(--sky) 0%,
+    var(--sky-band) 38%,
+    var(--sky-band) 48%,
+    var(--sky-glow) 58%,
+    var(--sky) 68%,
+    var(--sky-band) 100%
+  );
 
   /* Footer — deep navy with a periwinkle accent */
   --footer-bg: #151933;
@@ -132,7 +146,7 @@
   }
   .card-hover:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 30px -16px rgba(28, 37, 32, 0.25);
+    box-shadow: 0 10px 30px -16px rgba(28, 33, 64, 0.25);
     border-color: var(--line);
   }
 
@@ -186,6 +200,22 @@
   }
   .btn-secondary:hover {
     border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Homepage hero on the periwinkle sky gradient. Grey text fails contrast on
+     the sky, so text there uses --ink and the secondary button is frosted. */
+  .hero-sky {
+    background: var(--hero-bg);
+  }
+  .btn-on-sky {
+    background-color: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.75);
+    color: var(--ink);
+  }
+  .btn-on-sky:hover {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-color: #ffffff;
     color: var(--accent);
   }
 }

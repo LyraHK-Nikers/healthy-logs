@@ -6,17 +6,17 @@ import type { CategorySlug } from "@/config/categories";
  * variety adds designed personality without going neon (DESIGN_SYSTEM.md).
  */
 export const CATEGORY_TINTS: Record<CategorySlug, string> = {
-  vitamins: "#F2EEDD", // warm sand
-  minerals: "#E6EDEF", // cool slate
-  protein: "#F0EAE2", // soft clay
-  "gut-health": "#E4EFEA", // mint
-  "weight-management": "#ECE8F0", // muted lavender-grey
-  "sports-nutrition": "#EAF2EC", // accent green wash
-  "general-nutrition": "#EEF0E4", // olive wash
+  vitamins: "#E8EDFF", // periwinkle wash
+  minerals: "#DDE4FB", // blue sand
+  protein: "#E6E1F8", // soft violet
+  "gut-health": "#DCEFEC", // sea-glass teal
+  "weight-management": "#ECE6F9", // lavender
+  "sports-nutrition": "#D5DEFF", // sky mist
+  "general-nutrition": "#E3E8FA", // pale periwinkle
 };
 
 export function categoryTint(slug: string): string {
-  return CATEGORY_TINTS[slug as CategorySlug] ?? "#EAF2EC";
+  return CATEGORY_TINTS[slug as CategorySlug] ?? "#E8EDFF";
 }
 
 /** Simple, consistent line icons (24×24, stroke = currentColor). */

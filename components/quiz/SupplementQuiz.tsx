@@ -411,7 +411,7 @@ function QuestionCard({
               className={`group flex w-full items-center gap-3 rounded-card border px-4 py-3.5 text-left text-md text-ink transition-all ${
                 isActive
                   ? "border-accent bg-accent-soft"
-                  : "border-line bg-surface hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_8px_24px_-16px_rgba(28,37,32,0.4)]"
+                  : "border-line bg-surface hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_8px_24px_-16px_rgba(28,33,64,0.4)]"
               }`}
             >
               {o.icon && <Icon name={o.icon} />}

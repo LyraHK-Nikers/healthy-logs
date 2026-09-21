@@ -61,7 +61,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2F6B4F",
+  themeColor: "#3448C8",
 };
 
 // Flip to live by setting SITE_LIVE=true in the host's env vars, then redeploy.
