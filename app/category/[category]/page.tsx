@@ -7,6 +7,12 @@ import { Breadcrumbs, type Crumb } from "@/components/seo/Breadcrumbs";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { pageMetadata, breadcrumbJsonLd } from "@/lib/seo";
 
+// Every page here is known at build time (publishing a post commits and
+// triggers a redeploy), so an unknown slug is a hard 404. Without this, the
+// site-wide loading.tsx streams a 200 first and missing pages become an
+// indexable soft-404.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return categorySlugs.map((category) => ({ category }));
 }
@@ -18,11 +24,15 @@ export function generateMetadata({
 }): Metadata {
   const category = getCategory(params.category);
   if (!category) return {};
-  return pageMetadata({
+  const meta = pageMetadata({
     title: category.name,
     description: category.description,
     path: `/category/${category.slug}`,
   });
+  // An empty topic page is thin content: keep it out of search until it has posts.
+  return getArticlesByCategory(category.slug).length
+    ? meta
+    : { ...meta, robots: { index: false, follow: true } };
 }
 
 export default function CategoryPage({

@@ -14,6 +14,12 @@ import { ArticleCard } from "@/components/cards/ArticleCard";
 import { Breadcrumbs, type Crumb } from "@/components/seo/Breadcrumbs";
 import { JsonLd } from "@/components/seo/JsonLd";
 
+// Every page here is known at build time (publishing a post commits and
+// triggers a redeploy), so an unknown slug is a hard 404. Without this, the
+// site-wide loading.tsx streams a 200 first and missing pages become an
+// indexable soft-404.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getAllAuthors().map((a) => ({ slug: a.frontmatter.slug }));
 }
