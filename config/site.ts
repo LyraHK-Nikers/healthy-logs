@@ -11,7 +11,7 @@ export const siteConfig = {
   // "https://www.healthylogs.com" and set up the redirect in Hostinger.
   url: "https://healthylogs.com",
   ogImage: "/images/og-default.png",
-  email: "hello@healthylogs.com",
+  email: "contact@healthylogs.com",
   // Shown on legal pages; bump when you revise the policies.
   legalLastUpdated: "June 26, 2026",
   // Governing law for the Terms. TODO: name the state, e.g. "the State of Texas, United States".
