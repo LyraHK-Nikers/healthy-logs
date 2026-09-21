@@ -16,6 +16,14 @@
   --accent-soft: #eaf2ec; /* accent wash for tags/badges */
   --highlight: #c9a24b; /* bright brass — star-rating fills + decorative accents */
   --highlight-text: #8a6a1e; /* darker brass for TEXT (log stamps/captions) — passes WCAG AA on --bg */
+
+  /* Footer — deep navy with a periwinkle accent */
+  --footer-bg: #151933;
+  --footer-text: #bcc2e0; /* body copy */
+  --footer-link: #e6e9f8; /* links */
+  --footer-muted: #8e95c0; /* column headings + fine print */
+  --footer-accent: #8aa3ff; /* italic "Logs" in the wordmark */
+  --footer-line: #2c3259; /* divider */
 }
 
 @layer base {

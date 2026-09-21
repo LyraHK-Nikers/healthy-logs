@@ -30,15 +30,36 @@ export const siteConfig = {
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
   ],
-  // Footer legal links — required trust signal on YMYL sites (LEGAL_TEMPLATES.md)
-  legalNav: [
-    { label: "Affiliate disclosure", href: "/disclosure" },
-    { label: "Medical disclaimer", href: "/medical-disclaimer" },
-    { label: "Privacy policy", href: "/privacy" },
-    { label: "Terms of use", href: "/terms" },
-    { label: "Editorial policy", href: "/editorial-policy" },
-    { label: "About", href: "/about" },
-    { label: "Contact", href: "/contact" },
+  // Footer columns. Every legal/trust page must stay linked here — a required
+  // trust signal on YMYL sites (LEGAL_TEMPLATES.md).
+  footerNav: [
+    {
+      title: "Explore",
+      links: [
+        { label: "All articles", href: "/articles" },
+        { label: "Find your supplement", href: "/quiz" },
+        { label: "Free tools", href: "/tools" },
+        { label: "Myth or fact?", href: "/myths" },
+      ],
+    },
+    {
+      title: "About",
+      links: [
+        { label: "About Healthy Logs", href: "/about" },
+        { label: "Editorial policy", href: "/editorial-policy" },
+        { label: "Contact", href: "/contact" },
+        { label: "Search", href: "/search" },
+      ],
+    },
+    {
+      title: "Policies",
+      links: [
+        { label: "Affiliate disclosure", href: "/disclosure" },
+        { label: "Privacy policy", href: "/privacy" },
+        { label: "Terms of use", href: "/terms" },
+        { label: "Medical disclaimer", href: "/medical-disclaimer" },
+      ],
+    },
   ],
 } as const;
 

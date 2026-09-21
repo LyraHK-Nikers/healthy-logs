@@ -1,62 +1,82 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { Logo } from "@/components/layout/Logo";
+import { LogoMark } from "@/components/layout/Logo";
 
 /**
- * Global footer. MUST link every legal/trust page — itself an E-E-A-T signal
- * Google looks for on YMYL sites (LEGAL_TEMPLATES.md "Footer requirement").
+ * Global footer — deep navy, periwinkle accent. MUST link every legal/trust
+ * page (siteConfig.footerNav) — itself an E-E-A-T signal Google looks for on
+ * YMYL sites (LEGAL_TEMPLATES.md "Footer requirement").
  */
+const linkClass =
+  "text-footer-link hover:text-white hover:underline underline-offset-4 focus-visible:outline-footer-accent";
+
 export function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="mt-20 border-t border-line bg-surface">
-      <div className="mx-auto max-w-container px-5 py-12">
-        <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
-          <div className="max-w-sm">
-            <Logo showSuffix={false} />
-            <p className="mt-3 text-sm text-ink-soft">{siteConfig.tagline}</p>
-            <p className="mt-4 text-xs text-ink-soft">
-              Information only — not medical advice. See our{" "}
-              <Link href="/medical-disclaimer" className="text-accent link-underline">
-                medical disclaimer
-              </Link>
-              .
+    <footer className="mt-20 bg-footer-bg text-footer-text">
+      <div className="mx-auto max-w-container px-5 pb-7 pt-14 text-[0.92rem]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-8">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 focus-visible:outline-footer-accent"
+            >
+              <LogoMark className="h-10 w-10" />
+              <span className="font-display text-[1.75rem] leading-none text-white">
+                Healthy <span className="italic text-footer-accent">Logs</span>
+              </span>
+            </Link>
+            <p className="mt-5 max-w-sm text-base leading-relaxed">
+              Wellness you can actually trust.
+              <br />
+              {siteConfig.description}
             </p>
           </div>
 
-          <nav aria-label="Footer">
-            <h2 className="eyebrow mb-3">Site</h2>
-            <ul className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-              {siteConfig.legalNav.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="text-ink-soft link-underline hover:text-accent"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {siteConfig.footerNav.map((col) => (
+            <nav key={col.title} aria-label={col.title}>
+              <h2 className="mb-3.5 font-sans text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-footer-muted">
+                {col.title}
+              </h2>
+              <ul className="space-y-2">
+                {col.links.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className={linkClass}>
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
 
-        <div className="mt-10 rule flex flex-col gap-3 pt-6 text-xs text-ink-soft sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-11 grid gap-2 border-t border-footer-line pt-5 text-[0.8rem] leading-relaxed text-footer-muted">
           <p>
-            © <span className="log-stamp">2026</span> {siteConfig.name}. As an
-            Amazon Associate we earn from qualifying purchases. See our{" "}
-            <Link href="/disclosure" className="text-accent link-underline">
-              affiliate disclosure
+            The content on {siteConfig.name} is for informational purposes only
+            and is not a substitute for professional medical advice, diagnosis,
+            or treatment.{" "}
+            <Link href="/medical-disclaimer" className={linkClass}>
+              Read the full disclaimer
             </Link>
             .
           </p>
-          <div className="flex gap-4">
-            <Link href="/search" className="link-underline hover:text-accent">
-              Search
+          <p>
+            Some links on this site are affiliate links. If you buy through them,
+            we may earn a small commission at no extra cost to you. As an Amazon
+            Associate we earn from qualifying purchases.{" "}
+            <Link href="/disclosure" className={linkClass}>
+              Learn more
             </Link>
-            <a href="/feed.xml" className="link-underline hover:text-accent">
+            .
+          </p>
+          <p>
+            © {year} {siteConfig.name}. All rights reserved. ·{" "}
+            <a href="/feed.xml" className={linkClass}>
               RSS
             </a>
-          </div>
+          </p>
         </div>
       </div>
     </footer>

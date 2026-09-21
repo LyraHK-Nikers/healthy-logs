@@ -22,6 +22,14 @@ const config: Config = {
         "accent-soft": "var(--accent-soft)",
         highlight: "var(--highlight)",
         highlightText: "var(--highlight-text)",
+        footer: {
+          bg: "var(--footer-bg)",
+          text: "var(--footer-text)",
+          link: "var(--footer-link)",
+          muted: "var(--footer-muted)",
+          accent: "var(--footer-accent)",
+          line: "var(--footer-line)",
+        },
       },
       fontFamily: {
         // wired to next/font CSS variables in app/layout.tsx
